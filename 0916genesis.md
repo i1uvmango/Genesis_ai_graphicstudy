@@ -117,7 +117,7 @@
 
 
 ## 코드 분석
-
+[sand_wheel 실습](/res/sand_wheel.mp4)
 ### sand_wheel.py
 ```
 import argparse
@@ -293,7 +293,7 @@ MPM 솔버로 떨어지는 모래를 계산, Rigid 솔버로 강체 계산
 ----
 ## 자동차 구동체 예제 조사
 -----
-## 자동차 엔진 비교 - 단 genesis에서 돌릴 수 없음
+## 자동차 엔진 비교 
 ---
 1. PyBullet 👉 “빠르고 가볍게 실험해보는 용도”
 
@@ -308,6 +308,30 @@ MPM 솔버로 떨어지는 모래를 계산, Rigid 솔버로 강체 계산
 단, 자동차 예제 같은 건 직접 모델링해야 함
 * **Genesis에서 돌릴 수 있는가?**: MuJoCo는 독자적인 시뮬레이터. 다만 MuJoCo 환경(MJCF/XML 모델)은 Genesis로 변환하거나 비슷하게 구성 가능.
 -------
+
+## Genesis와 외부 엔진(PyBullet, MuJoCo) 활용성 정리
+
+## 1. Genesis 엔진 구조
+- Genesis는 **GPU 기반 자체 물리 솔버**를 내장한 독립 시뮬레이터.  
+- 지원되는 주요 솔버:
+  - Rigid, FEM, PBD, MPM, SPH, Tools  
+- `gs.init(backend=...)`에서 선택하는 것은 **계산 자원(CPU/GPU)**이지 외부 엔진이 아님.  
+  - 예:  
+    ```python
+    gs.init(backend=gs.gpu)
+    gs.init(backend=gs.cpu)
+    ```
+
+---
+
+## 2. 외부 엔진(PyBullet, MuJoCo) 직접 사용 여부
+- `gs.init(backend=gs.mujoco)` 같은 방식은 **지원되지 않음 ❌**  
+- 이유:
+  - PyBullet/MuJoCo는 Genesis와 **완전히 별도의 물리 엔진 코드베이스**  
+  - 각 엔진은 자체 API(바디, 조인트, 충돌, 파라미터)를 가지고 있으며, Genesis의 `Scene` / `Entity` / `Morph`와 호환되지 않음.  
+  - Genesis는 GPU 최적화된 내부 자료구조만 받아들임.  
+
+---
 ## Genesis 용 설계 (솔버 사용)
 ### 필요 요소
 1. 차체 (Rigid body)
@@ -338,3 +362,4 @@ MPM 솔버로 떨어지는 모래를 계산, Rigid 솔버로 강체 계산
 6. 주행환경
 - 도로, 빗길, 눈 등 주행 환경
 * 필요 솔버 : Rigid Solver(아스팔트) + Joint(차량 다이나믹스) + MPM Solver(노면)
+

@@ -50,7 +50,24 @@
 * 비디오 확인 
 * iteration 0 - 1001 까지 실행
 * iteration 변화에 따른 비디오 녹화
+### iteration 0
+<video controls src="res/drone0.mp4" title="Title"></video>
 
+### iteration 100
+<video controls src="res/drone100.mp4" title="Title"></video>
+
+### iteration 450 
+<video controls src="res/drone450.mp4" title="Title"></video>
+
+### iteration 1000 error
+<video controls src="res/drone1000error.mp4" title="Title"></video>
+* 제대로 작동 안함
+
+### iteration 1000 잘 작동
+<video controls src="res/drone1000.mp4" title="Title"></video>
+* 제대로 작동
+
+----
 
 * 성능 그래프 코드
 ```

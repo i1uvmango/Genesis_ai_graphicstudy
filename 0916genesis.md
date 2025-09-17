@@ -116,9 +116,9 @@
 
 
 
-## 코드 분석
+## sand_wheel.py
 [sand_wheel 실습](/res/sand_wheel.mp4)
-### sand_wheel.py
+### 코드 분석
 ```
 import argparse
 import numpy as np

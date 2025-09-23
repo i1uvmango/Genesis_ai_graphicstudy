@@ -99,16 +99,19 @@ max_particles=200000,
 
 2. grid_density(해상도 64 &rarr; 32)
     * 실행이 안됨(너무 프레임이 적음)
-    * grid_density(128) 돌리니깐 확실히 느려졌음 -> 성능과 관계 있음
+    * grid_density(128) 돌리니깐 확실히 느려졌음 -> 성능과 관계 있음    
   ![grid_density=128](/res/griddensity128.gif)  
 
 
 3. max_particles 낮추기  
     * 성능 차이 없음
-  ![max_particle1000](/res/sand_wheel1000.gif)
-    * 1000개 입자(조금 빠름)  
 
-      ![max_particle50000](/res/sand_wheel50000.gif)
+     ![max_particle1000](/res/sand_wheel1000.gif) 
+
+    * 1000개 입자(조금 빠름)  
+  
+     ![max_particle50000](/res/sand_wheel50000.gif)
+
     * 50000ro 입자(느림)  
 
 
@@ -167,7 +170,7 @@ max_particles=200000,
 
 #### 사용 솔버
 * Rigid Solver + MPM(FEM 가능) 혼합  
-  * 바퀴 → Rigid solver  
+  * 바퀴 → Rigid solver
   * 차체 프레임(steel beam 등) → FEM Solver  
   * 외장 패널(변형 가능) → MPM Solver  
 * Collision Detection → Genesis의 contact solver 활용  

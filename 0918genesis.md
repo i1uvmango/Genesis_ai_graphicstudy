@@ -60,7 +60,7 @@ print("Current backend:", ti.cfg.arch)
 
 
 ## 솔버가 느린 이유 가능성
-1. dt(시간 간격이 너무 짧음) : 엄청 많은 step 을 사용함
+1. dt(step:particle to grid &rarr;grid to particle 계산 주기) : 엄청 많은 step 을 사용함
 ```
 dt=3e-3,
 substeps=10,
@@ -97,7 +97,7 @@ max_particles=200000,
     * 더 느려졌음
     * 3번 particle의 개수에 따른 속도 변화 말고는 정상이었음  
 
-2. grid_density(해상도 64 &rarr; 32)
+2. grid_density(주어진 공간을 나누는 격자: 64 &rarr; 32)
     * 실행이 안됨(너무 프레임이 적음)
     * grid_density(128) 돌리니깐 확실히 느려졌음 -> 성능과 관계 있음    
      ![grid_density=128](/res/griddensity128.gif)  
@@ -116,7 +116,7 @@ max_particles=200000,
     * 50000ro 입자(느림)  
 
 
-4. substep=10 낮춰보기
+4. substep=10 낮춰보기(step을 쪼개서 수치 안정성을 가져가는 세부 step)
     * 낮췄더니 해상도에 따른 substep이 너무 낮다고 불안정 메세지가 뜨긴 함
     * 하지만 시뮬레이션 속도에는 딱히 차이 없음
 

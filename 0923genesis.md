@@ -64,14 +64,13 @@ YES
 4. Constitutive model (재료 물리 모델)
     * sand 모델은 무거운 모델: elastic 보다 개별 마찰력 등 계산 할 물리량이 많음
 
+## CPU 사용 문제
+![cpu 사용](/res/cpu%20사용.gif)
 
+* 이유 여전히 불명
 
 ## Elastic Wheel 실행
 
-
-tests/test_deformable_physics.py 이거 하라고 하네
-
-test_deformable_parallel 함수
 
 ![alt text](image.png)
 
@@ -101,9 +100,9 @@ test_deformable_parallel 함수
     * joint, 힘(force), constraint(제약조건)
     * URDF 방식으로 불러옴 -> car_simulation도 URDF로 쓸 수 있지 않을까?? 
 
-
+--- 
 ### URDF
 * URDF: xml 기반 텍스트 파일 , 로봇의 형태, 정보들을 정의하는 파일
     * Pybullet 등 다른 시뮬레이터에서 지원
-    * Genesis 는 gs.morphs.URDF 같은 API로 가져올 수 있다고 함
+    * Genesis 는 `gs.morphs.URDF()` 같은 API로 가져올 수 있다고 함
     * Genesis 에서 URDF 자체를 지원해주진 않아서 내가 직접 URDF 파일을 만들어서 정의 해줘야함

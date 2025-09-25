@@ -99,7 +99,7 @@ test_deformable_parallel 함수
 ![keyboard_teleop](/res/keyboard_teleop%20(1).gif)
 * Rigid 솔버
     * joint, 힘(force), constraint(제약조건)
-    * URDF 방식으로 불러옴 -> car 예시도 URDF로 쓸 수 있지 않을까
+    * URDF 방식으로 불러옴 -> car_simulation도 URDF로 쓸 수 있지 않을까?? 
 
 
 ### URDF

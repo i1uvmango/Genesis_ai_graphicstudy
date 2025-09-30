@@ -105,4 +105,4 @@ YES
 * URDF: xml 기반 텍스트 파일 , 로봇의 형태, 정보들을 정의하는 파일
     * Pybullet 등 다른 시뮬레이터에서 지원
     * Genesis 는 `gs.morphs.URDF()` 같은 API로 가져올 수 있다고 함
-    * Genesis 에서 URDF 자체를 지원해주진 않아서 내가 직접 URDF 파일을 만들어서 정의 해줘야함
+  

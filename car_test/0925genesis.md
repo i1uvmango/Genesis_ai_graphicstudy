@@ -26,6 +26,8 @@ Genesis에서 자동차 URDF 생성 및 시뮬레이션
 
 ![car_image](./res/car_img.png)
 
+
+### URDF 파일 코드
 ```
 <?xml version="1.0" ?>
 <robot name="genesis_simple_car"> #이름 정의
@@ -282,7 +284,7 @@ urdf 이름: genesis_simple_car
     * origin xyz="0.4 0.25 0.05" → 바퀴의 위치
     * axis xyz="0 1 0" → 바퀴가 어떤 축으로 회전하는지 지정 (여기선 y축 : z축 cylinder를 90도 회전 시켰으니 y축이 맞음)
 
- ```
+        ```
         * URDF Joint Types
         1. revolute
         - 특정 축을 기준으로 회전
@@ -312,19 +314,21 @@ urdf 이름: genesis_simple_car
         - 2차원 평면 내에서만 움직임 허용
         - (x, y 이동 + z축 회전)
         - 사용 예시: 탁자 위에서 미끄러지는 물체
-    ```
-
+   
+        ```
 ---
 
   
-## car_test.py 
+# car_test.py 
+* simulation  
 
 ![car_test_demo](./res/car_test_drive.gif)
 
 * 키보드 방향키 input 에 따른 주행
     * wasd는 visualizer default 키로 지정되어 있어서 방향키 사용
-```
-# main code
+
+
+## main code
 
 ```
 import genesis as gs

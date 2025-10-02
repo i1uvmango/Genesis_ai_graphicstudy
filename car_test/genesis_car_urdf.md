@@ -1,13 +1,10 @@
 
-<<<<<<< HEAD:car_test/genesis_car_urdf.md
-# Genesis Simple Car URDF
-=======
+
 # Genesis simple car simulation URDF
->>>>>>> cfc2aae347dbbd0adca2f1e769bc100bd6f1eefb:car_test/0925genesis.md
+
 ### 피드백
 ```
-
-항상 메모리 생각할 것 -> 계산해서 이게 내 환경에서 돌릴 수 있냐
+항상 메모리 생각할 것 -> 계산해서 이게 내 환경에서 돌릴 수 있는지
 
 
 지금은 URDF 기반으로 Genesis 세계에서 자동차 모델을 간단히 만들고 굴리는 것부터 시작.

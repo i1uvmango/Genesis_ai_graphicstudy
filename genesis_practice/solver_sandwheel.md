@@ -65,21 +65,21 @@ YES
     * sand 모델은 무거운 모델: elastic 보다 개별 마찰력 등 계산 할 물리량이 많음
 
 ## CPU 사용 문제
-![cpu 사용](/res/cpu%20사용.gif)
+![cpu 사용](./res/cpu%20사용.gif)
 
 * 이유 여전히 불명
 
 ## Elastic Wheel 실행
 
 
-![alt text](image.png)
+![elastic_wheel](./res/elastic_wheel.png)
 
 
 #### 이게 없어서 다른 MPM/FEM/SPH 솔버 사용하는 예시로 대체
 * 파괴 / 변형 예시 못찾아서 위치가 변하는(떨어지면서 퍼지는) 예시로 찾음
 ----
 
-![water_wheel](/res/water_wheel.gif)
+![water_wheel](./res/water_wheel.gif)
 * SPH 솔버 사용
     * 입자 기반으로 유체를 계산
     * 압력, 점성, 외력을 입자간 상호작용으로 모델링
@@ -88,14 +88,14 @@ YES
 
 ---
 
-![sph_liquid](/res/sph_liquid.gif)
+![sph_liquid](./res/sph_liquid.gif)
 * SPH 솔버
     * 떨어지며 바닥에 부딪힌 뒤(외력) 퍼짐
 
 ----
 
 
-![keyboard_teleop](/res/keyboard_teleop%20(1).gif)
+![keyboard_teleop](./res/keyboard_teleop%20(1).gif)
 * Rigid 솔버
     * joint, 힘(force), constraint(제약조건)
     * URDF 방식으로 불러옴 -> car_simulation도 URDF로 쓸 수 있지 않을까?? 

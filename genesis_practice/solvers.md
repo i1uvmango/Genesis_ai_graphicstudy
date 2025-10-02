@@ -117,7 +117,7 @@
 
 
 ## sand_wheel.py
-[sand_wheel 실습](./res/sand_wheel.mp4)
+[![sand_wheel 실습](./res/sand_wheel.mp4)](https://github.com/user-attachments/assets/2e9c4321-23b7-43b3-ba9a-fb7aee5f8c02)
 
 ### 코드 분석
 ```

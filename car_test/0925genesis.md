@@ -239,8 +239,8 @@ urdf 이름: genesis_simple_car
         ```
         ![alt text](./res/image.png)
         * τ=I⋅α
-        * 토크 = inertia(관성 hessian 행렬) * 각속도 벡터(alpha: angular acceleration)
-        * 각속도 = radian / S^2 (초마다 radian &rarr; 속도 라디안으로 정의되어 있음)
+        * 토크 = inertia(관성 hessian 행렬) * 각가속도 벡터(alpha: angular acceleration)
+        * 각가가속도 = radian / S^2 (초마다 radian &rarr; 속도 라디안으로 정의되어 있음)
  ---
 * 바퀴
     ```
@@ -389,7 +389,7 @@ def main():
     rr = get_dof_index(car_entity.joints[3])
     dofs = [fl, fr, rl, rr]
     
-    speed = 20.0
+    speed = 20.0 #각속도
 
     # ✅ pygame 초기화
     pygame.init()
@@ -561,9 +561,10 @@ scene.step()
 
 ### inertia, speed, cmd 관계
 * inertia : 관성 모멘트
-* speed : 목표 속도
+* speed : 목표 각속도
 * cmd : 목표 속도를 바퀴 대로 묶은 배열  
-  * speed = 20 이었음 &rarr; `cmd = [20,20,20,20]`를 목표
+  * speed = 20 이었음 &rarr; 목표 속도: `cmd = [20,20,20,20]`를 목표
     * `inertia=1` 이라면 무난히 가속 (바퀴가 가벼움)
     * `inertia=10` 이라면 20 rad/s 까지 도달 시간 증가 (바퀴가 무거움)
   * 토크 = 관성 모멘트 * 각속도 &rarr; 관성 모멘트가 늘어나면 해당 속도 도달까지 요구하는 토크(힘)가 늘어남
+  

@@ -1,6 +1,6 @@
-# Car Blending
+#  Vehicle Modeling & Genesis Integration
 
-# Blending
+## Blending
 ![car_modeling](./res/car_modeling.gif)
 - Blending 에서 모델 불러오기
 - blender size: 14MB ~67.8MB 

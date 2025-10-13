@@ -71,3 +71,84 @@
 ### 문제 해결 이후 계획
 - `genesis_car_urdf.md` 보고서의 `car_test.py` 에 blending 적용
 - 좌표 설정 기반 움직임
+- **차체 제어 플러그인 Suspension 추가**
+
+### Suspension 
+- 위 blender 모델에 서스펜션 존재 x
+- brake 만 존재
+- URDF로 구현 필요
+```
+import bpy
+
+# URDF(car.urdf) 기준 링크/조인트 이름 반영
+CHASSIS_NAME = "chassis"
+
+# URDF joint origin xyz (chassis 기준) 값을 사용해 각 휠 위치 지정
+# <joint name="joint_fl" ... origin xyz="0.12511 2.53016 0.658992"/>
+# <joint name="joint_fr" ... origin xyz="2.10912 2.53010 0.657567"/>
+# <joint name="joint_bl" ... origin xyz="0.12511 -0.83093 0.658992"/>
+# <joint name="joint_br" ... origin xyz="2.10912 -0.83099 0.657567"/>
+WHEELS = [
+    {"name": "wheel_fl", "pos": (0.12511,  2.53016, 0.658992)},
+    {"name": "wheel_fr", "pos": (2.10912,  2.53010, 0.657567)},
+    {"name": "wheel_bl", "pos": (0.12511, -0.83093, 0.658992)},
+    {"name": "wheel_br", "pos": (2.10912, -0.83099, 0.657567)},
+]
+
+chassis = bpy.data.objects.get(CHASSIS_NAME)
+assert chassis, "chassis 오브젝트를 찾을 수 없습니다."
+
+def ensure_rigidbody(obj, as_active):
+    if obj.rigid_body is None:
+        bpy.context.view_layer.objects.active = obj
+        bpy.ops.rigidbody.object_add()
+    obj.rigid_body.type = 'ACTIVE' if as_active else 'PASSIVE'
+    obj.rigid_body.use_deactivation = False
+
+for w in WHEELS:
+    wheel = bpy.data.objects.get(w["name"])  # 씬에 존재하는 휠 오브젝트 필요
+    if wheel is None:
+        print(f"skip: {w['name']} not found")
+        continue
+
+    # 차체 Passive, 바퀴 Active로 강체 설정
+    ensure_rigidbody(chassis, as_active=False)
+    ensure_rigidbody(wheel,   as_active=True)
+
+    # 기존 동일 이름의 Empty 제거
+    cons_name = f"suspension_{w['name']}"
+    old = bpy.data.objects.get(cons_name)
+    if old:
+        bpy.data.objects.remove(old, do_unlink=True)
+
+    # 제약용 Empty 생성: URDF joint origin xyz 위치로 배치
+    bpy.ops.object.add(type='EMPTY', location=w["pos"])  # 월드 좌표 사용
+    empty = bpy.context.active_object
+    empty.name = cons_name
+
+    # Generic Spring 제약 추가 (차체 <-> 바퀴)
+    bpy.ops.rigidbody.constraint_add()
+    c = empty.rigid_body_constraint
+    c.type = 'GENERIC_SPRING'
+    c.object1 = chassis
+    c.object2 = wheel
+
+    # 선형 제약: X/Y/Z 모두 0으로 고정 (축 제약)
+    c.use_limit_lin_x = True; c.limit_lin_x_lower = 0.0; c.limit_lin_x_upper = 0.0
+    c.use_limit_lin_y = True; c.limit_lin_y_lower = 0.0; c.limit_lin_y_upper = 0.0
+    c.use_limit_lin_z = True; c.limit_lin_z_lower = 0.0; c.limit_lin_z_upper = 0.0
+
+    # 스프링(Z) 활성화 및 강성/감쇠 설정 (URDF의 스프링 상수는 직접 매핑 없음 → 설정치로 근사)
+    c.use_spring_lin_z = True
+    c.spring_stiffness_lin_z = 5000.0  # 권장 3000~10000
+    c.spring_damping_lin_z   = 300.0   # 권장 100~1000
+
+    # (선택) 각 자유도 잠금: Blender 내 회전 불필요 시 고정
+    c.use_limit_ang_x = True; c.limit_ang_x_lower = 0.0; c.limit_ang_x_upper = 0.0
+    c.use_limit_ang_y = True; c.limit_ang_y_lower = 0.0; c.limit_ang_y_upper = 0.0
+    c.use_limit_ang_z = True; c.limit_ang_z_lower = 0.0; c.limit_ang_z_upper = 0.0
+```
+
+- 간단히: URDF 조인트 위치대로 Empty 만들고 `Generic Spring` 걸어줌.
+- X/Y/Z 이동은 0으로 잠그고, Z축만 스프링 켬 → 위아래로 "출렁".
+- 바퀴 구동은 URDF에서 처리하니, 블렌더에선 각도 잠가도 OK(필요하면 풀기).

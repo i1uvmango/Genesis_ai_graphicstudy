@@ -19,7 +19,7 @@ real world data 를 simulation에 어떻게 적용할건가? mlp를 사용하여
 
 
 # Blending
-<video src="https://github.com/user-attachments/assets/211aaf57-99f7-4a74-83dd-304eb71a3a9e" controls width="600"></video>
+<video src="[https://github.com/user-attachments/assets/211aaf57-99f7-4a74-83dd-304eb71a3a9e](https://github.com/i1uvmango/Genesis_ai_graphicstudy/issues/2#issue-3509792116)" controls width="600"></video>
 
 
 - Blending 에서 모델 불러오기기

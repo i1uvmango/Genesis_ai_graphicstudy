@@ -19,7 +19,8 @@ real world data 를 simulation에 어떻게 적용할건가? mlp를 사용하여
 
 
 # Blending
-![car_modeling](./res/car_modeling.mp4)
+[![car_modeling](./res/car_modeling_thumbnail.png)](https://github.com/i1uvmango/Genesis_ai_graphicstudy/issues/2#issue-3509792116)
+
 - Blending 에서 모델 불러오기기
    
 ---

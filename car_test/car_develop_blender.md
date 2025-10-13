@@ -19,7 +19,7 @@ real world data 를 simulation에 어떻게 적용할건가? mlp를 사용하여
 
 
 # Blending
-![car_modeling](./res/car_modeling.mp4)
+![car_modeling](./res/car_modeling.gif)
 - Blending 에서 모델 불러오기기
    
 ---
@@ -29,7 +29,7 @@ real world data 를 simulation에 어떻게 적용할건가? mlp를 사용하여
  car = gs.morphs.URDF(
         file="./car.urdf",
         fixed=False,
-        pos=(0, 0, -0.6) #공중 날라감 방지지
+        pos=(0, 0, -0.6)  # ✅ 초기 위치 보정 (공중 날림 방지)
     )
     scene.add_entity(car)
 `
@@ -53,7 +53,7 @@ real world data 를 simulation에 어떻게 적용할건가? mlp를 사용하여
 - brwheel.obj : 뒤 오른쪽 바퀴
 
 ---
-## 좌표 불일치 현상 + 공중 날라감 현상
+## 좌표 불일치 현상
 
 ![coordinate_error](./res/coordinate_err.png)
 

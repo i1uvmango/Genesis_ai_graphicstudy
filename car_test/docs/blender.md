@@ -1,6 +1,6 @@
 # Blender → Genesis(URDF) 분리/정렬 이슈 (기록)
 
-![car_overview](../res/car_img.png)
+![car_overview](../res/car_body.png)
 
 짧게: Blender에서 모델 찾고(비디오 참고), Genesis로 가져와서 굴리려는데 바퀴가 엇나감. 하나의 rigid body 문제 → 파트 분리 → 좌표/축/스케일 꼬임. 여기 시도 로그와 해결 체크리스트 정리.
 

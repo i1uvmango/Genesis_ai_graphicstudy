@@ -21,7 +21,7 @@ def main():
 
     # ✅ URDF 불러오기 (차체 + 바퀴)
     car = gs.morphs.URDF(
-        file="./car.urdf",
+        file="../urdf/car.urdf",
         fixed=False,
         pos=(0, 0, -0.6)  # ✅ 초기 위치 보정 (공중 날림 방지)
     )

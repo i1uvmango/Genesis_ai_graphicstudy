@@ -1,6 +1,6 @@
 # Blender → Genesis(URDF) 분리/정렬 이슈 (기록)
 
-![car_overview](./res/car_img.png)
+![car_overview](../res/car_img.png)
 
 짧게: Blender에서 모델 찾고(비디오 참고), Genesis로 가져와서 굴리려는데 바퀴가 엇나감. 하나의 rigid body 문제 → 파트 분리 → 좌표/축/스케일 꼬임. 여기 시도 로그와 해결 체크리스트 정리.
 
@@ -28,13 +28,13 @@
    - 조치: 본 문서에 현상과 가설, 해결 절차/체크리스트 정리
    - 상태: Blender 재정렬 및 재수출, URDF 단계적 검증 예정
 
-![주행 테스트](./res/car_test_drive.gif)
+![주행 테스트](../res/car_test_drive.gif)
 
 ---
 
 ## 배경
 - Blender에서 차량 모델링
-  - 참고: [모델링 비디오(mp4)](./res/car_modeling.mp4)
+  - 참고: [모델링 비디오(mp4)](../res/car_modeling.mp4)
 - 하나의 OBJ로 올리면 통짜 rigid body → 조인트 불가
 - 그래서 차체 + 4 휠로 분리했더니 위치/축이 뒤섞임
 - 휠 좌표를 (0,0,0)으로 리셋 후 URDF에서 붙이는 전략으로 변경했지만 여전히 오프셋 발생

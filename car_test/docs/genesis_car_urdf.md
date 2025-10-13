@@ -25,7 +25,7 @@ Genesis에서 자동차 URDF 생성 및 시뮬레이션
 ----
 ## URDF 차체+바퀴+Joint
 
-![car_image](./res/car_img.png)
+![car_image](../res/car_img.png)
 
 
 ### URDF 파일 코드
@@ -323,7 +323,7 @@ urdf 이름: genesis_simple_car
 # car_test.py 
 * simulation  
 
-![car_test_demo](./res/car_test_drive.gif)
+![car_test_demo](../res/car_test_drive.gif)
 
 * 키보드 방향키 input 에 따른 주행
     * wasd는 visualizer default 키로 지정되어 있어서 방향키 사용

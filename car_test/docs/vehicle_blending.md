@@ -1,7 +1,7 @@
 #  Vehicle Modeling & Genesis Integration
 
 ## Blending
-![car_modeling](./res/car_modeling.gif)
+![car_modeling](../res/car_modeling.gif)
 - Blending 에서 모델 불러오기
 - blender size: 14MB ~67.8MB 
 - obj size: 11MB ~69MB 
@@ -10,7 +10,7 @@
 
 `
  car = gs.morphs.URDF(
-        file="./car.urdf",
+        file="../urdf/car.urdf",
         fixed=False,
         pos=(0, 0, -0.6)  # ✅ 초기 위치 보정 (공중 날림 방지)
     )
@@ -27,8 +27,8 @@
 
 ## 해결책 : car_body + 4 wheels
 **다섯개의 파트로 분할**
-![car_body](./res/car_body.png)
-![car_body](./res/wheel.png)
+![car_body](../res/car_body.png)
+![car_body](../res/wheel.png)
 - car.obj : 차량 본체
 - flwheel.obj : 앞 왼쪽 바퀴
 - frwheel.obj : 앞 오른쪽 바퀴
@@ -38,7 +38,7 @@
 ---
 ## 좌표 불일치 현상
 
-![coordinate_error](./res/coordinate_err.png)
+![coordinate_error](../res/coordinate_err.png)
 
 
 ### 문제 요약

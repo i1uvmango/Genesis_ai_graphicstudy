@@ -4,7 +4,7 @@
 ![car2](../res/blender_car2.png)
 
 - Low poly car rigged 사용
-- body + wheel 
+- body + 4 wheel 
 
 
 

@@ -16,6 +16,10 @@ Blender는 물리 엔진을 외부에 제공하지 않음
     * Blender에서 계산된 `주요 물리효과(충돌, 서스펜션 등..)`만 Blender 사용, 나머지는 Genesis 물리로 계산
 
 
+[![blender_car]()](https://github.com/user-attachments/assets/1ee96045-1d38-4925-888c-2870c0f73916)
+
+[![blender_car]()](https://github.com/user-attachments/assets/ba70947a-7ed5-459c-bf7f-274ecad34938)
+   
 ---
 ## Extracting Parameters from Blender
 * Blender to JSON : (../src/blendertoJson.py)

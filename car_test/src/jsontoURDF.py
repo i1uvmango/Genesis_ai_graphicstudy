@@ -1,58 +1,85 @@
-import json, os
+import json
+import os
+import xml.etree.ElementTree as ET
+from xml.dom import minidom
 
-# 🔹 네 JSON 파일 이름 맞게 수정
-json_file = r"E:\MK\car_full_physics.json"  
+# === 1️⃣ 입력 / 출력 경로 설정 ===
+input_path = "car_structure.json"
+output_path = "car_from_json.urdf"
 
-
-with open(json_file, "r", encoding="utf-8") as f:
+with open(input_path, "r", encoding="utf-8") as f:
     data = json.load(f)
 
-save_path = os.path.join(os.getcwd(), "car.urdf")
+objects = data["objects"]
 
-def vec_to_str(v): return f"{v[0]} {v[1]} {v[2]}"
+# === 2️⃣ 링크 이름으로 빠르게 접근하기 위한 dict ===
+obj_dict = {obj["name"]: obj for obj in objects}
 
-with open(save_path, "w", encoding="utf-8") as f:
-    f.write('<?xml version="1.0"?>\n<robot name="car">\n\n')
+# === 3️⃣ URDF 루트 노드 생성 ===
+robot = ET.Element("robot", {"name": "car_model"})
 
-    for link in data["links"]:
-        name = link["name"]
-        mass = link["mass"]
-        friction = link["friction"]
-        shape = link["collision_shape"].lower()
-        xyz = vec_to_str(link["origin"]["xyz"])
-        rpy = vec_to_str(link["origin"]["rpy"])
+# === 4️⃣ 링크 노드 생성 ===
+for obj in objects:
+    link = ET.SubElement(robot, "link", {"name": obj["name"]})
 
-        f.write(f'  <link name="{name}">\n')
-        f.write('    <inertial>\n')
-        f.write(f'      <mass value="{mass}"/>\n')
-        f.write('      <inertia ixx="1" iyy="1" izz="1"/>\n')
-        f.write('    </inertial>\n')
-        f.write('    <collision>\n      <geometry>\n')
-        if "box" in shape:
-            f.write('        <box size="2 1 0.5"/>\n')
-        elif "cylinder" in shape:
-            f.write('        <cylinder radius="0.3" length="0.1"/>\n')
-        else:
-            f.write('        <sphere radius="0.3"/>\n')
-        f.write(f'      </geometry>\n      <origin xyz="{xyz}" rpy="{rpy}"/>\n    </collision>\n')
-        f.write(f'  </link>\n\n')
+    # inertial (질량 / 관성)
+    inertial = ET.SubElement(link, "inertial")
+    mass = ET.SubElement(inertial, "mass", {"value": str(obj.get("mass") or 1.0)})
+    inertia = ET.SubElement(inertial, "inertia", {
+        "ixx": "1.0", "ixy": "0.0", "ixz": "0.0",
+        "iyy": "1.0", "iyz": "0.0", "izz": "1.0"
+    })
 
-    for j in data["joints"]:
-        parent = j["object1"]
-        child = j["object2"]
-        jtype = j["type"].lower()
-        xyz = vec_to_str(j["origin"]["xyz"])
-        rpy = vec_to_str(j["origin"]["rpy"])
-        axis = vec_to_str(j.get("axis_world", [0,1,0]))
-        f.write(f'  <joint name="{j["name"]}" type="{jtype}">\n')
-        f.write(f'    <parent link="{parent}"/>\n')
-        f.write(f'    <child link="{child}"/>\n')
-        f.write(f'    <origin xyz="{xyz}" rpy="{rpy}"/>\n')
-        f.write(f'    <axis xyz="{axis}"/>\n')
-        if "motor" in j:
-            f.write(f'    <limit effort="{j["motor"]["max_impulse"]}" velocity="{j["motor"]["velocity"]}"/>\n')
-        f.write('  </joint>\n\n')
+    # visual (시각 모델)
+    visual = ET.SubElement(link, "visual")
+    geom_v = ET.SubElement(visual, "geometry")
+    ET.SubElement(geom_v, "box", {"size": "0.1 0.1 0.1"})  # placeholder geometry
 
-    f.write('</robot>\n')
+    # collision (충돌 모델)
+    collision = ET.SubElement(link, "collision")
+    geom_c = ET.SubElement(collision, "geometry")
+    ET.SubElement(geom_c, "box", {"size": "0.1 0.1 0.1"})
 
-print(f"✅ URDF 생성 완료 → {save_path}")
+# === 5️⃣ Joint 노드 생성 ===
+joint_id = 0
+for obj in objects:
+    parent_name = obj.get("parent")
+    if parent_name:
+        parent = obj_dict[parent_name]
+        # joint 생성
+        j_name = f"joint_{joint_id}"
+        joint_id += 1
+
+        joint = ET.SubElement(robot, "joint", {
+            "name": j_name,
+            "type": "revolute"
+        })
+
+        ET.SubElement(joint, "parent", {"link": parent_name})
+        ET.SubElement(joint, "child", {"link": obj["name"]})
+
+        # origin (xyz, rpy)
+        loc = obj.get("location", [0, 0, 0])
+        rot = obj.get("rotation_euler", [0, 0, 0])
+        origin = ET.SubElement(joint, "origin", {
+            "xyz": f"{loc[0]} {loc[1]} {loc[2]}",
+            "rpy": f"{rot[0]} {rot[1]} {rot[2]}"
+        })
+
+        # 회전축 기본값 (Z축 회전)
+        ET.SubElement(joint, "axis", {"xyz": "0 0 1"})
+
+        # 제한 (기본 범위)
+        limit = ET.SubElement(joint, "limit", {
+            "lower": "-3.14", "upper": "3.14",
+            "effort": "100", "velocity": "10"
+        })
+
+# === 6️⃣ Pretty print & 저장 ===
+xml_str = ET.tostring(robot, encoding="utf-8")
+xml_pretty = minidom.parseString(xml_str).toprettyxml(indent="  ")
+
+with open(output_path, "w", encoding="utf-8") as f:
+    f.write(xml_pretty)
+
+print(f"✅ URDF exported successfully → {output_path}")

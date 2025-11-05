@@ -18,11 +18,21 @@ Blender는 물리 엔진을 외부에 제공하지 않음
 * Con: CPU 기반 연산이기에 매우 느리고, Genesis에서 돌리는 이유가 사라진다
     * GPU 기반의 빠른 연산 & 렌더링이 필요하기에 PyBullet은 탈락 
 
+## 직접 URDF 만들어서 엔진 학습
+* URDF 변환 시 주의사항
+    * parenting 해체: parenting이 되어있으면 x,y,z 위치가 부모에 종속적이어서 이상한 위치에 생성될 수 있음
+    * bone(blender) 불필요: Genesis에서 URDF안에서 joint를 정의할 수 있어서 bone은 또 다른 rigid body가 됨 &rarr; mesh 만 필요
 
 ## Blender Car to Genesis
 [![terrain_drive](../res/car_genesis2.mp4)](https://github.com/user-attachments/assets/1ee96045-1d38-4925-888c-2870c0f73916)  
-[![terrain_drive](../res/car_genesis1.mp4)](https://github.com/user-attachments/assets/ba70947a-7ed5-459c-bf7f-274ecad34938)  
-* 아직 미완성 상태
+[![terrain_drive](../res/car_genesis1.mp4)](https://github.com/user-attachments/assets/ba70947a-7ed5-459c-bf7f-274ecad34938)    
+
+* 아직 미완성 상태  
+* body, wheel_fl, wheel_fr, wheel_rl, wheel_rr: 5개의 dae 파일
+* 모두 parenting 해제 후 (0,0,0)로 좌표 설정 후 dae export
+* URDF에서 5개의 dae 파일 읽은 후 Genesis에 entity 생성
+
+
 #### 오류 정리
 * ㅁ
 * ㅁ
@@ -63,7 +73,16 @@ name, type, object1, object2, origin["xyz"], origin["rpy"], axis_world, motor.ve
 * 모터정보  
 
 위 parameter 추출 후 URDF 로 변환
+
+
+##############################
+# 틀린 부분
+* PPO(자율주행,강화학습 기반 제어) 로 할꺼면 위 데이터로 하면 안됨.
+
+####################
   
+
+
 Physics Engine Calibration (물리파라미터 보정법)
     * Blender Simulation 프레임별로 `bpy` 로 물리 parameter 추출 : JSON 으로 저장
         * 코드: (~~)

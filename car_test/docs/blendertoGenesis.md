@@ -18,10 +18,19 @@ Blender는 물리 엔진을 외부에 제공하지 않음
 * Con: CPU 기반 연산이기에 매우 느리고, Genesis에서 돌리는 이유가 사라진다
     * GPU 기반의 빠른 연산 & 렌더링이 필요하기에 PyBullet은 탈락 
 
+
+## Blender Car to Genesis
+[![terrain_drive](../res/terraindrive_mesh.mp4)](https://github.com/user-attachments/assets/1ee96045-1d38-4925-888c-2870c0f73916)  
+[![terrain_drive](../res/terraindrive_mesh.mp4)](https://github.com/user-attachments/assets/ba70947a-7ed5-459c-bf7f-274ecad34938)  
+* 아직 미완성 상태
+#### 오류 정리
+* ㅁ
+* ㅁ
+* ㅁ
 ### 선택 방법
 * Blender Simulation에서 직접 parameter를 추출하여 Genesis의 솔버를 학습시키는 방법
 * 시뮬레이션 실행하며 매 frame 마다 parameter을 추출 
-
+---
 ## Extracting Data
 
 ### rigid body data
@@ -65,10 +74,6 @@ Physics Engine Calibration (물리파라미터 보정법)
 * 아니면 동역학 중심으로 데이터를 추출해야하나?
 
 
-[![blender_car]()](https://github.com/user-attachments/assets/1ee96045-1d38-4925-888c-2870c0f73916)
-
-[![blender_car]()](https://github.com/user-attachments/assets/ba70947a-7ed5-459c-bf7f-274ecad34938)
-   
 ---
 
 

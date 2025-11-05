@@ -7,7 +7,7 @@
     * mesh: terrain 표현 하나하나를 mesh에 따라 계산 &rarr; 연산량 증가, 정교한 표현
       
 
-## How
+## 물리 법칙 모사
 Blender는 물리 엔진을 외부에 제공하지 않음
 * Bullet Physics Library를 기반함(C++)
 * 이를 모사하기 위해 Pybullet을 Genesis에서 사용  

@@ -28,8 +28,8 @@ Blender는 물리 엔진을 외부에 제공하지 않음
 
 
 ## Blender Car to Genesis
-[![car_import1](../res/car_genesis2.mp4)](https://github.com/user-attachments/assets/1ee96045-1d38-4925-888c-2870c0f73916)  
-[![car_import2](../res/car_genesis.mp4)](https://github.com/user-attachments/assets/ba70947a-7ed5-459c-bf7f-274ecad34938)    
+[![car_import1](../res/car_genesis.mp4)](https://github.com/user-attachments/assets/1ee96045-1d38-4925-888c-2870c0f73916)  
+[![car_import2](../res/car_genesis2.mp4)](https://github.com/user-attachments/assets/ba70947a-7ed5-459c-bf7f-274ecad34938)    
 
 * 아직 미완성 상태  
 * body, wheel_fl, wheel_fr, wheel_rl, wheel_rr: 5개의 dae 파일

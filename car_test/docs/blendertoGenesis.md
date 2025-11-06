@@ -55,6 +55,8 @@ https://github.com/user-attachments/assets/ba70947a-7ed5-459c-bf7f-274ecad34938
 #### 현재 오류 정리
 * **car_body** : z축 기준으로 180도 회전된 상태로 생성
 * **wheel** : dof 가 너무 큼, 뒷바퀴는 dof 0으로 고정 시키기기
+* 좌표계 설정 x , z로 재설정해야함
+* dae 파일이 URDF에 호환이 잘된다고 하여 사용했지만, 좌표계 꼬임이 많다고 함 &rarr; Export 좌표계 x,z로 변경 후에도 잘 되지않는다면 glb(직접 변환 필요), obj 포맷으로 다시 해볼 예정
     
 
 # Training : PPO

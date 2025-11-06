@@ -19,27 +19,35 @@ Blender는 물리 엔진을 외부에 제공하지 않음
     * GPU 기반의 빠른 연산 & 렌더링이 필요하기에 PyBullet은 탈락 
 
 ## 직접 URDF 만들어서 엔진 학습
-* URDF 변환 시 주의사항
-    * parenting 해체: parenting이 되어있으면 x,y,z 위치가 부모에 종속적이어서 이상한 위치에 생성될 수 있음
-    * bone(blender) 불필요: Genesis에서 URDF안에서 joint를 정의할 수 있어서 bone은 또 다른 rigid body가 됨 &rarr; mesh 만 필요
+* URDF 변환 하며 생긴 문제들:
+    * parenting 해체: Blender에서 Export 시 parenting이 되어있으면 x,y,z 위치가 부모에 종속적이어서 이상한 위치, 회전된 상태로 생성 될 수 있음
+        * URDF는 절대 좌표계 기준으로만 동작, Blender의 local transform 정보를 인식하지 못함
+    * bone 불필요: Genesis에서 URDF안에서 joint를 정의할 수 있어서 bone은 또 다른 rigid body가 됨 &rarr; mesh 만 필요
+        * Genesis는 joint로 물리 연결을 정의하기 때문에 bone은 하나의 객체로 인식함, parenting 도 설정되지 않음
+    * mesh 원점 설정: (0,0,0)으로 기본 좌표계를 설정해주지 않으면 joint origin과 mesh의 offset이 이중으로 적용되어서 멀리 떨어져 생성될 수 있음
+
 
 ## Blender Car to Genesis
-[![terrain_drive](../res/car_genesis2.mp4)](https://github.com/user-attachments/assets/1ee96045-1d38-4925-888c-2870c0f73916)  
-[![terrain_drive](../res/car_genesis1.mp4)](https://github.com/user-attachments/assets/ba70947a-7ed5-459c-bf7f-274ecad34938)    
+[![car_import1](../res/car_genesis2.mp4)](https://github.com/user-attachments/assets/1ee96045-1d38-4925-888c-2870c0f73916)  
+[![car_import2](../res/car_genesis.mp4)](https://github.com/user-attachments/assets/ba70947a-7ed5-459c-bf7f-274ecad34938)    
 
 * 아직 미완성 상태  
 * body, wheel_fl, wheel_fr, wheel_rl, wheel_rr: 5개의 dae 파일
+    * dae: Blender, Genesis 에서 geometry + transform + scale까지 완전 보존
 * 모두 parenting 해제 후 (0,0,0)로 좌표 설정 후 dae export
 * URDF에서 5개의 dae 파일 읽은 후 Genesis에 entity 생성
 
 
-#### 오류 정리
-* ㅁ
-* ㅁ
-* ㅁ
+#### 현재 오류 정리
+* **car_body** : z축 기준으로 180도 회전된 상태로 생성
+* **wheel** : dof 가 너무 큼, 뒷바퀴는 dof 0으로 고정 시키기기
+
+
+# Training : PPO
 ### 선택 방법
 * Blender Simulation에서 직접 parameter를 추출하여 Genesis의 솔버를 학습시키는 방법
-* 시뮬레이션 실행하며 매 frame 마다 parameter을 추출 
+* 주행 시뮬레이션 실행하며 매 frame 마다 parameter을 추출
+
 ---
 ## Extracting Data
 

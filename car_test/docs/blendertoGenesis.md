@@ -202,67 +202,25 @@ pickle 오버헤드 포함: 약 50–100 KB
 예상 크기: 약 28–100 bytes (numpy 헤더 포함)
 총 저장 공간
 약 50–150 KB 수준입니다. 모델이 작고 저장 오버헤드가 적습니다.
-# 일단 여기까지 
 
----
-# Training : PPO
-#### 현재는 Genesis URDF(rigid) + joints 로 차체를 만듦
-* 모두 parenting 해제 후 (0,0,0)로 좌표 설정 후 dae export
-* URDF에서 5개의 dae 파일 읽은 후 Genesis에 entity 생성
-
-### 선택 방법
-* Blender Simulation에서 직접 parameter를 추출하여 Genesis의 솔버를 학습시키는 방법
-* 주행 시뮬레이션 실행하며 매 frame 마다 parameter을 추출
-
----
-## Extracting Data
-
-### rigid body data
+#### parameter
+![params](../res/params.png)
+* data.csv : 89kb (매우 작음)
+* 7개의 parameter, 250프레임의 크기, 20 epoch 학습
+* 49kb 의 checkpoint size
 ```
-name, mass, friction, restitution, linear damping, angular damping, collision shape, origin[x,y,z], origin[rpy] 
+최적 파라미터:
+  friction: 1.005
+  car_mass: 500.770
+  wheel_mass: 10.681
+  kp_drive: 100.597
+  kv_drive: 10.629
+  kp_steer: 500.716
+  kv_steer: 50.683
 ```
-* 이름
-* 질량
-* 마찰 계수
-* 반발계수
-* 선형감쇠
-* 각 감쇠
-* 충돌 형상
-* 위치
-* 회전(rpy)
-* 부모링크
-* 자식링크
-  
-### joint data
-```
-name, type, object1, object2, origin["xyz"], origin["rpy"], axis_world, motor.velocity, motor.max_impulse
-```
-* 이름
-* 타입
-* 부모링크
-* 자식링크
-* 위치
-* 회전(rpy)
-* 축 방향
-* 모터정보  
+#### checkpoint driving 영상
 
-위 parameter 추출 후 URDF 로 변환
-
-
-##############################
-# 틀린 부분
-* 데이터를 뽑아낸다 라고해서 동역학의 데이터 라고 생각했는데 train을 시키려면 train에 필요한 데이터가 필요하다는 걸 깨달음
-  
-* PPO(자율주행,강화학습 기반 제어) 로 할꺼면 위 데이터로 하면 안됨.
-    * 주행 데이터, 앞에 어떤 물체가 있는지, 속도, 각속도 등의 데이터가 필요함 &rarr; 코드 수정 필요
-####################
-
-
-
-* 데이터 추출할때 주행 중심으로 데이터를 추출해야하나?
-* 아니면 동역학 중심으로 데이터를 추출해야하나?
-
-
+[![20ckpt](../res/20ckpt.mp4)](https://github.com/user-attachments/assets/527de8cf-0bec-418e-bd65-dfa65f2ae6f3)
 ---
 ### Code: Extracting Parameters from Blender
 * Blender to JSON : ([../src/blendertoJson.py](https://github.com/i1uvmango/Genesis_ai_graphicstudy/blob/main/car_test/src/blendertoJson.py))

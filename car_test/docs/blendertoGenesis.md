@@ -137,7 +137,9 @@ https://github.com/user-attachments/assets/ba70947a-7ed5-459c-bf7f-274ecad34938
 
 ### test 영상
 
-https://github.com/user-attachments/assets/6556f3a5-b75f-49a8-a252-b733c86edb08
+[![terrain_drive](../res/car_genesis_drive.mp4)](https://github.com/user-attachments/assets/6556f3a5-b75f-49a8-a252-b733c86edb08)
+* 직진, 우회전
+
 ------
 
 

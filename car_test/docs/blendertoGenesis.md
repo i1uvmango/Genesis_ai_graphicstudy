@@ -222,6 +222,4 @@ pickle 오버헤드 포함: 약 50–100 KB
 
 [![20ckpt](../res/20ckpt.mp4)](https://github.com/user-attachments/assets/527de8cf-0bec-418e-bd65-dfa65f2ae6f3)
 ---
-### Code: Extracting Parameters from Blender
-* Blender to JSON : ([../src/blendertoJson.py](https://github.com/i1uvmango/Genesis_ai_graphicstudy/blob/main/car_test/src/blendertoJson.py))
-* JSON to URDF: (https://github.com/i1uvmango/Genesis_ai_graphicstudy/blob/main/car_test/src/jsontoURDF.py)
+

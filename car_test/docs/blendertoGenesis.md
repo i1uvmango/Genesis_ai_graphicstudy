@@ -142,11 +142,68 @@ https://github.com/user-attachments/assets/ba70947a-7ed5-459c-bf7f-274ecad34938
 
 ------
 
+# Blender dae 파일 적용
+**dae export 설정(genesis 좌표계와 일치)** 
+* forward : x축
+* up : z축 
+URDF 파일에 각각 파일 로딩
+wheel_fl: car_parts/wheel_fl.dae
+wheel_fr: car_parts/wheel_fr.dae
+wheel_rl: car_parts/wheel_rl.dae
+wheel_rr: car_parts/wheel_rr.dae  
 
+`<geometry> ~ </geometry>` 부분을 직접 설정 &rarr; dae 파일
+```
+<geometry>
+<mesh filename="car_parts/car_body.dae"/>
+</geometry>
+```
+#### Collision: car_parts/car_body.dae (기존 box)로 설정하고 test
+![error](../res/blender_car_error.png)
+아래와 같이 나옴
+* 일단 pass
+
+
+### 다음 step
+```
+genesis 에서 blender 데이터로 시뮬레이션 진행 
+urdf 설정
+terrain physics in genesis?
+
+Real-to-Sim System Identification
+(or Real2Sim Calibration)
+```
+1. blender data 뽑고
+2. mlp를 genesis 에 추가하여 Real-to-Sim system 을 목표함
   
+#### 추출 데이터
+![data_extracting](../res/data_extracting.gif)
+```
+frame	car_x	car_y	car_z	car_yaw	car_vx	car_vy	car_vz	fl_x	fl_y	fl_z	fl_vx	fl_vy	fl_vz	fr_x	fr_y	fr_z	fr_vx	fr_vy	fr_vz	rl_x	rl_y	rl_z	rl_vx	rl_vy	rl_vz	rr_x	rr_y	rr_z	rr_vx	rr_vy	rr_vz
+```
 
-
+## MLP 학습
+MLP를 사용하여 Genesis 물리 시뮬레이터의 파라미터를 학습하는 시스템입니다. CSV 데이터를 사용하여 실제 차량의 움직임을 모방하는 물리 파라미터를 찾습니다. 유한 차분법을 사용하여 그래디언트를 계산하고, Adam 옵티마이저로 모델을 업데이트합니다.
+---
+파일 크기
+1. physics_model.pth (MLP 모델)
+모델 구조: 입력 7 → [128, 64, 32] → 출력 7
+파라미터 개수:
+Linear(7, 128): 7×128 + 128(bias) = 1,024
+Linear(128, 64): 128×64 + 64(bias) = 8,256
+Linear(64, 32): 64×32 + 32(bias) = 2,080
+Linear(32, 7): 32×7 + 7(bias) = 231
+총 약 11,591개 파라미터
+예상 크기:
+순수 데이터: 11,591 × 4 bytes (float32) ≈ 45 KB
+pickle 오버헤드 포함: 약 50–100 KB
+2. best_params.npy (최적 파라미터)
+데이터: 7개 float32 값
+예상 크기: 약 28–100 bytes (numpy 헤더 포함)
+총 저장 공간
+약 50–150 KB 수준입니다. 모델이 작고 저장 오버헤드가 적습니다.
 # 일단 여기까지 
+
 ---
 # Training : PPO
 #### 현재는 Genesis URDF(rigid) + joints 로 차체를 만듦

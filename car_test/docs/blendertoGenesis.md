@@ -58,16 +58,7 @@ https://github.com/user-attachments/assets/ba70947a-7ed5-459c-bf7f-274ecad34938
 * 좌표계 설정 x , z로 재설정해야함
 * dae 파일이 URDF에 호환이 잘된다고 하여 사용했지만, 좌표계 꼬임이 많다고 함 &rarr; Export 좌표계 x,z로 변경 후에도 잘 되지않는다면 glb(직접 변환 필요), obj 포맷으로 다시 해볼 예정
     
-
-# Training : PPO
-* 모두 parenting 해제 후 (0,0,0)로 좌표 설정 후 dae export
-* URDF에서 5개의 dae 파일 읽은 후 Genesis에 entity 생성
-
-
-#### 오류 정리
-* ㅁ
-* ㅁ
-* ㅁ
+# blender 차 파일을 Genesis에 적용하는게 오류가 너무 많아 URDF로 우선 테스트
 
 # Genesis 에 URDF 로딩
 문제: 
@@ -155,6 +146,11 @@ https://github.com/user-attachments/assets/ba70947a-7ed5-459c-bf7f-274ecad34938
 
 # 일단 여기까지 
 ---
+# Training : PPO
+#### 현재는 Genesis URDF(rigid) + joints 로 차체를 만듦
+* 모두 parenting 해제 후 (0,0,0)로 좌표 설정 후 dae export
+* URDF에서 5개의 dae 파일 읽은 후 Genesis에 entity 생성
+
 ### 선택 방법
 * Blender Simulation에서 직접 parameter를 추출하여 Genesis의 솔버를 학습시키는 방법
 * 주행 시뮬레이션 실행하며 매 frame 마다 parameter을 추출

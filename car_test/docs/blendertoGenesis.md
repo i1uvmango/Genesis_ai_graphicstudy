@@ -58,63 +58,169 @@ https://github.com/user-attachments/assets/ba70947a-7ed5-459c-bf7f-274ecad34938
 * 좌표계 설정 x , z로 재설정해야함
 * dae 파일이 URDF에 호환이 잘된다고 하여 사용했지만, 좌표계 꼬임이 많다고 함 &rarr; Export 좌표계 x,z로 변경 후에도 잘 되지않는다면 glb(직접 변환 필요), obj 포맷으로 다시 해볼 예정
     
+# blender 차 파일을 Genesis에 적용하는게 오류가 너무 많아 URDF로 우선 테스트
 
-# Training : PPO
-### 선택 방법
-* Blender Simulation에서 직접 parameter를 추출하여 Genesis의 솔버를 학습시키는 방법
-* 주행 시뮬레이션 실행하며 매 frame 마다 parameter을 추출
+# Genesis 에 URDF 로딩
+문제: 
+* 공중에 날라감
+    * Plane 충돌 방지를 위해 공중 생성
+    * constraints 안정되지 않았을때 suspension의 spring을 피거나 or damping이 너무 작을때 스프링에 의해 힘을 위로 받아서 날라감
+
+## 문제 1: 바퀴 회전 축 및 구조 문제
+### 문제 상황
+- 바퀴가 전혀 회전하지 않음
+- 뒷바퀴만 회전 조인트가 있고, 앞바퀴에는 조향 조인트만 있음
+- 바퀴 회전 축이 잘못 설정됨 (Y축이 아닌 X축으로 설정되어 있었음)
+
+### 원인
+1. **회전 축 문제**: Genesis에서는 Y축(0, 1, 0) 회전이 전방 이동을 의미함 
+    * x방향이 전방을 의미 &rarr; y축 방향의 회전이 들어가야 바퀴가 굴러감
+    * x축을 돌려서 차가 움직이지 않았음
+2. **앞바퀴 회전 조인트 부재**: 앞바퀴에 회전 조인트가 없어서 바퀴가 회전하지 않음
+3. **조인트 구조 문제**: 조향과 회전이 하나의 조인트로 결합되어 있음
+
+### 해결 방법
+1. 모든 바퀴에 회전 조인트 추가 (Y축 회전)
+2. 앞바퀴에 조향 링크 추가하여 조향과 회전 분리
+3. 바퀴 회전 조인트를 `continuous` 타입으로 설정
+#### 변경된 구조
+```
+기존: car_body → susp → wheel (조향만 가능)
+수정: car_body → susp → steer_link → wheel (조향 + 회전 모두 가능)
+```
+  
+## 문제 2: 차량이 하늘로 솟구치는 문제
+
+### 문제 상황
+- 차량이 스폰될 때 하늘로 솟구침
+- 초기 위치가 너무 높게 설정되어 있거나, 바퀴가 지면과 겹침
+### 원인
+1. **초기 위치 계산 오류**: 차체 중심 위치와 바퀴 위치 관계를 정확히 계산하지 못함
+2. **바퀴-지면 간섭**: 바퀴가 지면 아래로 들어가서 물리 엔진이 튕김
+3. **서스펜션 조인트 범위**: 서스펜션 조인트의 limit이 넓어서 불안정함
+
+### 영향
+- 차량이 안정적으로 스폰됨
+- 하늘로 살짝 솟구침 (서스펜션 확인을 위해)
+- 바퀴가 지면에 안정적으로 닿음
+
+## 문제 3: 서스펜션 튕김 및 뒤집힘 문제
+
+### 문제 상황
+- 서스펜션이 튕겨서 차량이 뒤로 뒤집어짐
+- 서스펜션 조인트가 너무 자유롭게 움직임
+
+### 원인
+1. **서스펜션 링크 질량**: 5.0kg으로 너무 무거워서 불안정
+2. **서스펜션 조인트 범위**: -0.15 ~ 0.15로 너무 넓음
+3. **서스펜션 조인트 타입**: `prismatic` 타입이 damping이 없어서 튕김
+    * `prismatic` 은 축 고정 &rarr; z축으로만 서스펜션이 작동
+    * damping 은 충격을 흡수하여 진동을 줄이는 힘(저항) 
+
+### 해결 방법
+1. 서스펜션 조인트를 `fixed` 타입으로 변경 (test용)
+2. `prismatic`을 z축 고정?
+
+#### 실제 자동차 구조
+```
+실제 자동차:
+┌─────────────┐
+│   차체      │
+└──────┬──────┘
+       │
+    [스프링] ← 탄성 (진동)
+       │
+    [댐퍼]   ← 댐핑 (진동 감쇠) ← 이게 없으면 튕김!
+       │
+    [바퀴]
+```
+
+### test 영상
+
+[![terrain_drive](../res/car_genesis_drive.mp4)](https://github.com/user-attachments/assets/6556f3a5-b75f-49a8-a252-b733c86edb08)
+* 직진, 우회전
+
+------
+
+# Blender dae 파일 적용
+**dae export 설정(genesis 좌표계와 일치)** 
+* forward : x축
+* up : z축 
+URDF 파일에 각각 파일 로딩
+wheel_fl: car_parts/wheel_fl.dae
+wheel_fr: car_parts/wheel_fr.dae
+wheel_rl: car_parts/wheel_rl.dae
+wheel_rr: car_parts/wheel_rr.dae  
+
+`<geometry> ~ </geometry>` 부분을 직접 설정 &rarr; dae 파일
+```
+<geometry>
+<mesh filename="car_parts/car_body.dae"/>
+</geometry>
+```
+#### Collision: car_parts/car_body.dae (기존 box)로 설정하고 test
+![error](../res/blender_car_error.png)
+아래와 같이 나옴
+* 일단 pass
+
+
+### 다음 step
+```
+genesis 에서 blender 데이터로 시뮬레이션 진행 
+urdf 설정
+terrain physics in genesis?
+
+Real-to-Sim System Identification
+(or Real2Sim Calibration)
+```
+1. blender data 뽑고
+2. mlp를 genesis 에 추가하여 Real-to-Sim system 을 목표함
+  
+#### 추출 데이터
+![data_extracting](../res/data_extracting.gif)
+```
+frame	car_x	car_y	car_z	car_yaw	car_vx	car_vy	car_vz	fl_x	fl_y	fl_z	fl_vx	fl_vy	fl_vz	fr_x	fr_y	fr_z	fr_vx	fr_vy	fr_vz	rl_x	rl_y	rl_z	rl_vx	rl_vy	rl_vz	rr_x	rr_y	rr_z	rr_vx	rr_vy	rr_vz
+```
+
+## MLP 학습
+MLP를 사용하여 Genesis 물리 시뮬레이터의 파라미터를 학습하는 시스템입니다. CSV 데이터를 사용하여 실제 차량의 움직임을 모방하는 물리 파라미터를 찾습니다. 유한 차분법을 사용하여 그래디언트를 계산하고, Adam 옵티마이저로 모델을 업데이트합니다.
+---
+파일 크기
+1. physics_model.pth (MLP 모델)
+모델 구조: 입력 7 → [128, 64, 32] → 출력 7
+파라미터 개수:
+Linear(7, 128): 7×128 + 128(bias) = 1,024
+Linear(128, 64): 128×64 + 64(bias) = 8,256
+Linear(64, 32): 64×32 + 32(bias) = 2,080
+Linear(32, 7): 32×7 + 7(bias) = 231
+총 약 11,591개 파라미터
+예상 크기:
+순수 데이터: 11,591 × 4 bytes (float32) ≈ 45 KB
+pickle 오버헤드 포함: 약 50–100 KB
+2. best_params.npy (최적 파라미터)
+데이터: 7개 float32 값
+예상 크기: 약 28–100 bytes (numpy 헤더 포함)
+총 저장 공간
+약 50–150 KB 수준입니다. 모델이 작고 저장 오버헤드가 적습니다.
+
+#### parameter
+![params](../res/params.png)
+* data.csv : 89kb (매우 작음)
+* 7개의 parameter, 250프레임의 크기, 20 epoch 학습
+* 49kb 의 checkpoint size
+```
+최적 파라미터:
+  friction: 1.005
+  car_mass: 500.770
+  wheel_mass: 10.681
+  kp_drive: 100.597
+  kv_drive: 10.629
+  kp_steer: 500.716
+  kv_steer: 50.683
+```
+#### checkpoint driving 영상
+
+[![20ckpt](../res/20ckpt.mp4)](https://github.com/user-attachments/assets/527de8cf-0bec-418e-bd65-dfa65f2ae6f3)
 
 ---
-## Extracting Data
 
-### rigid body data
-```
-name, mass, friction, restitution, linear damping, angular damping, collision shape, origin[x,y,z], origin[rpy] 
-```
-* 이름
-* 질량
-* 마찰 계수
-* 반발계수
-* 선형감쇠
-* 각 감쇠
-* 충돌 형상
-* 위치
-* 회전(rpy)
-* 부모링크
-* 자식링크
-  
-### joint data
-```
-name, type, object1, object2, origin["xyz"], origin["rpy"], axis_world, motor.velocity, motor.max_impulse
-```
-* 이름
-* 타입
-* 부모링크
-* 자식링크
-* 위치
-* 회전(rpy)
-* 축 방향
-* 모터정보  
-
-위 parameter 추출 후 URDF 로 변환
-
-
-##############################
-# 틀린 부분
-* 데이터를 뽑아낸다 라고해서 동역학의 데이터 라고 생각했는데 train을 시키려면 train에 필요한 데이터가 필요하다는 걸 깨달음
-  
-* PPO(자율주행,강화학습 기반 제어) 로 할꺼면 위 데이터로 하면 안됨.
-    * 주행 데이터, 앞에 어떤 물체가 있는지, 속도, 각속도 등의 데이터가 필요함 &rarr; 코드 수정 필요
-####################
-
-
-
-* 데이터 추출할때 주행 중심으로 데이터를 추출해야하나?
-* 아니면 동역학 중심으로 데이터를 추출해야하나?
-
-
----
-### Code: Extracting Parameters from Blender
-* Blender to JSON : ([../src/blendertoJson.py](https://github.com/i1uvmango/Genesis_ai_graphicstudy/blob/main/car_test/src/blendertoJson.py))
-* JSON to URDF: (https://github.com/i1uvmango/Genesis_ai_graphicstudy/blob/main/car_test/src/jsontoURDF.py)
-.

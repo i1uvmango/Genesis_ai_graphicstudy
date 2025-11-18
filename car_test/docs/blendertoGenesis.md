@@ -117,3 +117,4 @@ name, type, object1, object2, origin["xyz"], origin["rpy"], axis_world, motor.ve
 ### Code: Extracting Parameters from Blender
 * Blender to JSON : ([../src/blendertoJson.py](https://github.com/i1uvmango/Genesis_ai_graphicstudy/blob/main/car_test/src/blendertoJson.py))
 * JSON to URDF: (https://github.com/i1uvmango/Genesis_ai_graphicstudy/blob/main/car_test/src/jsontoURDF.py)
+.

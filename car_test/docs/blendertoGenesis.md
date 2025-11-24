@@ -221,5 +221,7 @@ pickle 오버헤드 포함: 약 50–100 KB
 #### checkpoint driving 영상
 
 [![20ckpt](../res/20ckpt.mp4)](https://github.com/user-attachments/assets/527de8cf-0bec-418e-bd65-dfa65f2ae6f3)
+
+* 현재 body + 4 wheel 의 무게중심
 ---
 

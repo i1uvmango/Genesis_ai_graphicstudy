@@ -64,7 +64,11 @@ angular_velocity 값이 블렌더에서 제공되지 않는 상태
 state(6DoF) → action(steering, throttle)를 지도학습으로 직접 학습
     * 6DoF를 바탕으로 action을 예측하도록 학습
 
-## PPO (강화학습 Fine-Tuning)
+
+### 향후 방향
+* 세밀한 움직임
+* ppo
+## PPO (강화학습 Fine-Tuning) 
 * BC로 학습한 정책을 초기 파라미터로 사용하거나
 * 완전히 새 Actor-Critic을 만들어 초기화한 뒤
 * 시뮬레이터(CarSimulationWrapper)를 실제로 돌리면서 보상 함수를 기준으로 정책을 업데이트함.

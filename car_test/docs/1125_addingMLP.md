@@ -78,16 +78,23 @@ state(6DoF) → action(steering, throttle)를 지도학습으로 직접 학습
 
 ### MLP 구조
 
+
 ```
 Input (6)
-↓
-[Linear → ReLU → Dropout → BatchNorm]  × N
-↓
-Output Linear(2)
-↓
-Activation: steering(tanh), throttle(sigmoid)
+  ↓
+Linear(6→64) -- Hidden Lrmfja ayer1 
+ReLU -activate f
+  ↓
+Linear(64→64) -- Hidden Layer2
+ReLU -activate f
+  ↓
+Linear(64→2) -- Output Layer
+tanh -activate f
+Output (2)
 ```
-![](../res/workflow.png)
+
+![](../res/mlp_layer.png)
+
 #### 1. 입력층 (Input Layer)
 * 6 dof 입력(g_lin_vx, g_lin_vy, g_lin_vz, g_ang_vx, g_ang_vy, g_ang_vz)
 
@@ -99,20 +106,8 @@ Activation: steering(tanh), throttle(sigmoid)
 | g_ang_vx | roll rate  |
 | g_ang_vy | pitch rate |
 | g_ang_vz | yaw rate   |
-##### ReLu 활성화 함수
-![](../res/relu.png)
-* 비선형성 부여 &rarr; 복잡한 물리적 관계를 표현할 수 있도록 함
-##### dropout
-![](../res/mlp_dropout.png)
-* Dropout은 신경망이 과적합(overfitting)되는 것을 방지하기 위해 학습 중 일부 뉴런을 ‘무작위로 꺼버리는’ 정규화 기법
 
-#### 2. 은닉층 (Hidden Layers)
-```
-Linear(prev_dim → hidden_dim)
-ReLU()
-Dropout(0.1)
-BatchNorm1d(hidden_dim)
-```
+
 ##### Hidden Layer 1 (6 &rarr;256 차원)
 * 차량이 현재 가속 중인지 감속 중인지 (vx 변화율 패턴)
 * 슬립/드리프트가 발생할 가능성 (vy/vx 비율 패턴)
@@ -121,20 +116,25 @@ BatchNorm1d(hidden_dim)
 * 각축 조합 패턴 (예: yaw rate·vx의 조합 → 코너링 강도)
 원시 6-DoF 상태에서 다양한 ‘1차적 운동 패턴’을 폭넓게 확장하여 학습
 
-##### Hidden Layer 2(256 &rarr; 128 차원)
+##### ReLu 활성화 함수
+![](../res/relu.png)
+* 비선형성 부여 &rarr; 복잡한 물리적 관계를 표현할 수 있도록 함
+* 6DoF 를 64차원 feature로 확장
+* 64차원의 feature로 아래를 조합할 수 있게 확장
+    * 전진/후진 패턴 (vx 정/부호)
+    * lateral drift 패턴 (vy 크기)
+    * 차체 불안정(roll/pitch/yaw rate)
+    * 속도 변화율에 따른 acceleration proxy(대리값)
+ 
+##### Hidden Layer 2(64 &rarr; 64 차원)
 * 안정적 주행을 유지하는데 중요한 관측치 조합
 * steering 결정에 영향이 큰 동역학 feature
-* throttle 결정에 필요한 longitudinal acceleration 관련 feature
-* noise나 불필요한 부분(feature) 제거
-256차원의 ‘폭넓은 가설 후보들’ → 128개의 ‘핵심 물리적 의미 특징’으로 축약
+* throttle 결정에 필요한 acceleration feature
+* mapping의 develop을 위한 정보 가공/정리 단계
 
-##### Hidden Layer 3(128 &rarr; 64 차원)
-* "좌회전 필요성"을 나타내는 latent feature
-* "가속해야 하는 상황"을 나타내는 latent feature
-* "속도를 유지해야 하는 상태"
-* "드리프트 위험 → steering 보정 필요"
-* "차량이 pitch/roll으로 불안한 상황인지"
-“이 상태라면, 어떤 조향/스로틀 명령이 최적인가?” 정교한 policy decision space
+##### ReLu 활성화 함수
+
+* 비선형성 부여 &rarr; 복합적인 의미를 조합을 통해 만듦 
 
 #### 3. 출력층 (Output Layer)
 | 출력       | Activation | 최종 범위   |
@@ -144,8 +144,11 @@ BatchNorm1d(hidden_dim)
 * [-1,1] 정규화된 조향각
 * [0,1] 정규화된 선속도도
 
-![](../res/mlp_layers.png)
-* mlp 구조도
+
+
+### mlp 보강 예정
+* dropout (특정 노드를 없애 일반화 성능 높임)
+* batchnorm (학습을 빠르고 안정적이게 하기 위해 각층의 입력 분포 정규화)
 
 
 

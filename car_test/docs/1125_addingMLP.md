@@ -137,6 +137,7 @@ Output (2)
 * 비선형성 부여 &rarr; 복합적인 의미를 조합을 통해 만듦 
 
 #### 3. 출력층 (Output Layer)
+![](../res/tanh.png)
 | 출력       | Activation | 최종 범위   |
 | -------- | ---------- | ------- |
 | steering | tanh       | [-1, 1] |
@@ -148,6 +149,7 @@ Output (2)
 
 ### mlp 보강 예정
 * dropout (특정 노드를 없애 일반화 성능 높임)
+![](../res/mlp_dropout.png)
 * batchnorm (학습을 빠르고 안정적이게 하기 위해 각층의 입력 분포 정규화)
 
 

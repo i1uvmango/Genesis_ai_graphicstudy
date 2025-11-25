@@ -49,8 +49,10 @@ angular_velocity 값이 블렌더에서 제공되지 않는 상태
     * 앞바퀴 : steering angle 을 Euler Z 로
     * 뒷바퀴 : 매 프레임 뒷바퀴의 transform 을 Euler rotion에 업데이트
     * angular_velocity 업데이트 x
- #### 물리 기반이 아니라 rig propagation (pose 기반 kinematic)이라는 뜻
-* 해결 법
+ #### blender 물리 기반이 아니라 rig propagation (pose 기반 kinematic)이라는 뜻
+* 하지만 Genesis는 URDF 로딩시 동역학 기반임
+* 따라서 동역학 데이터를 추출해서 Genesis에서 Behavior Cloning이 제대로 일어나게 tuning 해줘야함
+* state &rarr; action 의 mapping만 일치하면 상관없음
 
   
   

@@ -1,59 +1,39 @@
-## Blender Drift to Genesis
-* RBC Pro 사용
+## Data extracting from blender (Script)
+### True : data recording  ### False: only simulation
 
-![](../res/path_point.png)
-youtube reference: `https://www.youtube.com/watch?v=rrI6wzFquhU` 
-
-![](../res/data.png)
-
-
-https://github.com/i1uvmango/Genesis_ai_graphicstudy/issues/9#issue-3669513138
-
-
-![](../res/path_follow.gif)
-### "핸들러 잔존(Handler Persistence)" 및 "전역 변수 오염(Global State Contamination)" 문제
-
-1. 문제 정의 (Problem Statement)
-현상: 스크립트를 재실행하거나 다른 .blend 파일을 로드했음에도 불구하고, 이전 시뮬레이션의 움직임 데이터가 출력되거나, 데이터가 비정상적으로 튀는 현상(Ghosting) 발생.
-
-사용자 관찰: "이전 파일의 움직임이 그대로 나온다" 혹은 "핸들러 캐시 문제"로 인지됨.
-
-#### 문제 
-1. 핸들러의 영속성 (Handler Persistence):
-
-bpy.app.handlers.frame_change_post에 등록된 함수는 사용자가 명시적으로 제거(remove)하거나 블렌더 프로그램을 완전히 끄기 전까지 메모리에 계속 상주합니다.
-
-2. 애플리케이션 메모리 공유:
-
-블렌더 내의 Python 인터프리터는 씬(Scene)이 바뀌어도 메모리를 공유합니다. 다른 파일을 열어도 변수명이 같다면 이전 메모리 주소를 참조할 위험이 있습니다.
-스크립트를 다시 실행할 때 이전 핸들러를 제대로 삭제하지 않으면, 똑같은 함수가 2개, 3개 중복되어 등록됩니다.
-
-이 경우, 한 번의 프레임 변경에 스크립트가 여러 번 실행되면서 CSV에 데이터를 중복 기록하거나 덮어쓰게 됩니다.
-
-
-
-
-### 공유 데이터 추출 코드
-```
 import bpy
 import csv
 import math
 from mathutils import Vector, Quaternion, Matrix
 
 # =====================
-# CONFIG
+# ★ 사용자 설정 (CONFIG)
 # =====================
 
+# ▶ 로깅 ON/OFF 스위치
+LOGGING_SWITCH = False  # True: 데이터 추출 시작 / False: 기능 끄기 (핸들러 해제)
+
+# ▶ 추출할 프레임 범위 (자동 실행 시)
+START_FRAME = 1
+END_FRAME = 250
+
+# ▶ 객체 이름 설정
 CAR_OBJECT_NAME   = "Corvette.Vehicle Body.RB"
 FRONT_LEFT_WHEEL  = "Corvette.Vehicle Body.0.FL1_Wheel.RB"
 FRONT_RIGHT_WHEEL = "Corvette.Vehicle Body.0.FR0_Wheel.RB"
 REAR_LEFT_WHEEL   = "Corvette.Vehicle Body.1.BL1_Wheel.RB"
 REAR_RIGHT_WHEEL  = "Corvette.Vehicle Body.1.BR0_Wheel.RB"
 
+# ▶ 벡터 설정
 BLENDER_FORWARD_LOCAL = Vector((0.0, -1.0, 0.0))
 WHEEL_SPIN_AXIS_LOCAL = Vector((1.0, 0.0, 0.0)) 
 
-OUTPUT_CSV_PATH = "C:/Users/USER/Desktop/sensor_log.csv"
+# ▶ 저장 경로
+OUTPUT_CSV_PATH = "E:/MK/data/drive_8.csv"
+
+# =====================
+# MATH HELPERS
+# =====================
 
 ROT_B2G = Matrix.Rotation(math.radians(90.0), 3, 'Z')
 
@@ -131,11 +111,9 @@ def signed_yaw_between(forward_a_world: Vector, forward_b_world: Vector) -> floa
 
     return angle
 
-
-# ✅ 수정된 함수 - 쿼터니언 버그 수정
 def get_wheel_spin_rate_B_fixed(wheel_obj, dt: float) -> float:
     """
-    휠 스핀 속도 계산 - 쿼터니언 shortest path 버그 수정
+    휠 스핀 속도 계산 - 쿼터니언 shortest path 버그 수정 버전
     """
     if wheel_obj is None or dt <= 0.0:
         return 0.0
@@ -148,44 +126,43 @@ def get_wheel_spin_rate_B_fixed(wheel_obj, dt: float) -> float:
         return 0.0
 
     prev_rot = Quaternion(prev_rot)
-   
-    # ✅ 핵심 수정: 두 쿼터니언의 dot product로 방향 확인
+    
+    # 쿼터니언 방향 보정 (Shortest Path 문제 해결)
     dot_product = prev_rot.w * curr_rot.w + \
                   prev_rot.x * curr_rot.x + \
                   prev_rot.y * curr_rot.y + \
                   prev_rot.z * curr_rot.z
-   
-    # dot < 0이면 반대편 쿼터니언을 사용 (shortest path)
+    
     if dot_product < 0:
         curr_rot_corrected = Quaternion((-curr_rot.w, -curr_rot.x, -curr_rot.y, -curr_rot.z))
     else:
         curr_rot_corrected = curr_rot
-   
+    
     delta = prev_rot.conjugated() @ curr_rot_corrected
     angle = delta.angle
-   
+    
     if abs(angle) < 1e-6:
         ang_vel_world = Vector((0.0, 0.0, 0.0))
     else:
         axis = delta.axis
         ang_vel_world = Vector(axis) * (angle / dt)
 
-    # 휠 로컬 회전축 투영
     R_w = wheel_obj.matrix_world.to_3x3()
     spin_axis_world = (R_w @ WHEEL_SPIN_AXIS_LOCAL).normalized()
     spin_rate = ang_vel_world.dot(spin_axis_world)
-   
-    # ✅ 안전장치: 비정상적으로 큰 값 클리핑
-    if abs(spin_rate) > 100.0:
-        print(f"[WARN] Frame {bpy.context.scene.frame_current}: "
-              f"Abnormal spin_rate {spin_rate:.2f}, clamping to ±100")
-        spin_rate = math.copysign(100.0, spin_rate)
+    
+    # 비정상 값 클리핑
+    if abs(spin_rate) > 200.0:
+        spin_rate = math.copysign(200.0, spin_rate)
 
     wheel_obj["_prev_wheel_rot_quat_B"] = curr_rot_corrected[:]
     return spin_rate
 
+# =====================
+# CSV & HANDLER LOGIC
+# =====================
 
-def init_csv(path, scene):
+def init_csv(path):
     full_path = bpy.path.abspath(path)
     with open(full_path, mode='w', newline='') as f:
         writer = csv.writer(f)
@@ -199,7 +176,7 @@ def init_csv(path, scene):
             "spin_FL", "spin_FR", "spin_RL", "spin_RR",
         ]
         writer.writerow(header)
-    print(f"[CarLogger] CSV 초기화: {full_path}")
+    print(f"[CarLogger] CSV 초기화 완료: {full_path}")
 
 def append_row(path, row):
     full_path = bpy.path.abspath(path)
@@ -224,6 +201,9 @@ def car_logger_handler(scene):
         dt = 0.0
     else:
         dt = (frame - last_frame) / fps
+        # 프레임이 뒤로 점프하면(Loop) 리셋
+        if dt < 0: dt = 0.0 
+        
     last_frame = frame
 
     mw_B = car.matrix_world
@@ -246,6 +226,7 @@ def car_logger_handler(scene):
     R_body = car.matrix_world.to_3x3()
     body_fwd_world = R_body @ BLENDER_FORWARD_LOCAL
 
+    # 후진 감지 보정
     if v_B.length > 1e-3:
         v_dir = v_B.normalized()
         if body_fwd_world.dot(v_dir) < 0:
@@ -257,16 +238,15 @@ def car_logger_handler(scene):
         R_wheel = wheel_obj.matrix_world.to_3x3()
         wheel_fwd_world = R_wheel @ BLENDER_FORWARD_LOCAL
         angle = signed_yaw_between(body_fwd_world, wheel_fwd_world)
-        if angle > math.pi / 2:
-            angle -= math.pi
-        elif angle < -math.pi / 2:
-            angle += math.pi
+        
+        # -pi ~ pi 보정
+        if angle > math.pi / 2: angle -= math.pi
+        elif angle < -math.pi / 2: angle += math.pi
         return angle
 
     steer_L = wheel_steer_angle(wheel_FL)
     steer_R = wheel_steer_angle(wheel_FR)
 
-    # ✅ 수정된 함수 사용
     spin_FL = get_wheel_spin_rate_B_fixed(wheel_FL, dt)
     spin_FR = get_wheel_spin_rate_B_fixed(wheel_FR, dt)
     spin_RL = get_wheel_spin_rate_B_fixed(wheel_RL, dt)
@@ -284,38 +264,56 @@ def car_logger_handler(scene):
 
     append_row(OUTPUT_CSV_PATH, row)
 
-def register_car_logger():
-    global last_frame
-    last_frame = None
+# =====================
+# REGISTRATION (SWITCH)
+# =====================
 
-    scene = bpy.context.scene
-    init_csv(OUTPUT_CSV_PATH, scene)
-
+def unregister_car_logger():
+    """핸들러를 안전하게 제거합니다."""
     handlers = bpy.app.handlers.frame_change_post
-    for h in list(handlers):
-        if getattr(h, "__name__", "") == "car_logger_handler":
-            handlers.remove(h)
+    to_remove = [h for h in handlers if getattr(h, "__name__", "") == "car_logger_handler"]
+    for h in to_remove:
+        handlers.remove(h)
+    print("[CarLogger] 로깅 중지 (핸들러 제거됨)")
 
-    handlers.append(car_logger_handler)
-    print("[CarLogger] 프레임 체인지 핸들러 등록 완료 (버그 수정 버전)")
-
-def export_all_frames(start_frame=1, end_frame=250):
+def register_car_logger():
+    """핸들러를 등록하고 CSV를 초기화합니다."""
+    unregister_car_logger() # 중복 방지용 선제거
+    
     global last_frame
-    scene = bpy.context.scene
-    register_car_logger()
     last_frame = None
-    current_frame = scene.frame_current
+    
+    init_csv(OUTPUT_CSV_PATH) # CSV 헤더 작성
+    
+    bpy.app.handlers.frame_change_post.append(car_logger_handler)
+    print("[CarLogger] 로깅 시작 (핸들러 등록됨)")
 
-    print(f"[CarLogger] {start_frame}~{end_frame} 프레임 내보내기 시작")
-    for f in range(start_frame, end_frame + 1):
+def run_batch_export(start, end):
+    """현재 씬을 처음부터 끝까지 돌며 강제로 추출합니다."""
+    print(f"[CarLogger] 배치 추출 시작: Frame {start} ~ {end}")
+    scene = bpy.context.scene
+    original_frame = scene.frame_current
+    
+    # 처음으로 돌리기 전 핸들러 등록
+    register_car_logger()
+    
+    for f in range(start, end + 1):
         scene.frame_set(f)
-    scene.frame_set(current_frame)
-    print(f"[CarLogger] 완료! sensor_log.csv 생성됨")
+        
+    scene.frame_set(original_frame)
+    print(f"[CarLogger] 배치 추출 완료!")
+
+# =====================
+# MAIN EXECUTION
+# =====================
 
 if __name__ == "__main__":
-    register_car_logger()
-    export_all_frames(1, 250)
-```
-
-### On/Off 할 수 있는 데이터 추출 코드
-[button_extract_data](../src/extract_data_blender.py)
+    if LOGGING_SWITCH:
+        # 1. 로깅 활성화 (핸들러 등록)
+        # register_car_logger() 
+        
+        # 2. 혹은 바로 전체 프레임 추출을 원하면 아래 함수 사용
+        run_batch_export(START_FRAME, END_FRAME)
+    else:
+        # 로깅 끄기
+        unregister_car_logger()

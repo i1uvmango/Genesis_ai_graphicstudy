@@ -145,9 +145,11 @@ Output (2)
 * [-1,1] 정규화된 조향각
 * [0,1] 정규화된 선속도도
 
+### BC 결과 (직진)
 
+(https://github.com/i1uvmango/Genesis_ai_graphicstudy/issues/10#issue-3669645067)
 
-### mlp 보강 예정
+### mlp 보강 방법
 * dropout (특정 노드를 없애 일반화 성능 높임)
 ![](../res/mlp_dropout.png)
 * batchnorm (학습을 빠르고 안정적이게 하기 위해 각층의 입력 분포 정규화)

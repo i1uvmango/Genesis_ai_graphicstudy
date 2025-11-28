@@ -37,7 +37,7 @@ bpy.app.handlers.frame_change_post에 등록된 함수는 사용자가 명시적
 
 이 경우, 한 번의 프레임 변경에 스크립트가 여러 번 실행되면서 CSV에 데이터를 중복 기록하거나 덮어쓰게 됩니다.
 
-### Guide Path Driving
+## Guide Path Driving 영상
 ![](../res/drive_square.gif)
 * 사각형 auto drive
   

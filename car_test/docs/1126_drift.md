@@ -80,7 +80,12 @@ bpy.app.handlers.frame_change_post에 등록된 함수는 사용자가 명시적
 
 ![](../res/drive_2.gif)
 * 8자로 달리지 않고 바닥에서 튀면서 이동
-    * 데이터 전처리 과정에서 문제가 있다고 판단
+* 예상 원인 : throttle 값이 음수로 변하는 부분에서 바퀴가 반대로 굴러가 마찰력에 의해 튕기는 현상
+    * 데이터 전처리 과정에서 문제가 있다고 판단 &rarr; 해결중에 있음
+    
+
+
+
 ### 공유 데이터 추출 코드
 [shared_data_extracter](../src/shared_data_extracter.py)
 * 연구생 공동 사용하는 data_extracting code

@@ -48,7 +48,9 @@ bpy.app.handlers.frame_change_post에 등록된 함수는 사용자가 명시적
 
 ### 8자 모양 drive 학습 후 Genesis 환경 실행
 * 8자 drive 학습 후 inference 해서 실행
+  
 ![](../res/drive8_initial.gif)
+  
 * 초기 `정지 상태`를 학습하지 못해 움직이지 않음
 #### 그렇다면 정지 데이터도 뽑아야 하는가?
 * "0인 상태를 추가해서 학습시키는 것"은 절대 비추

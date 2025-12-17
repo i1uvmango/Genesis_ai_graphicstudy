@@ -72,3 +72,8 @@ Up: +Z 방향
 * 좌표계 변환 문제일 것이라고 예상이 됨
 
 #### 코드
+블렌더 데이터 추출: [data_blender](../src/on_off_data_blender_data.py)  
+
+BC training 코드: [train_bc.py](../src/train_bc.py)  
+
+BC 추론 및 실행 코드: [test_bc.py](../src/test_bc.py)  

@@ -4,14 +4,14 @@
 
 아래는 주요 코드 파일과 간단한 목적 설명입니다.
 
+
 | 파일 | 코드 목적 |
 |---|---|
-
-| [src/train_bc.py](src/train_bc.py) | Behavior Cloning 정책 학습 스크립트(데이터 전처리·MLP 훈련·체크포인트 저장). |
-| [src/test_bc.py](src/test_bc.py) | 학습된 BC 모델을 Genesis에서 실행·시각화하는 추론 런너(URDF 로드, 제어 루프). |
-| [src/shared_data_extracter.py](src/shared_data_extracter.py) | 연구실 공용 데이터 추출 유틸리티(Blender/Genesis 데이터 공통 처리). |
-| [src/on_off_data_blender_data.py](src/on_off_data_blender_data.py) | Blender 프레임별 데이터 로거(핸들러 등록/제거, CSV 추출, spin/steer 처리). |
-| [src/car_test_urdf.py](urdf/car.urdf) | URDF  |
+| [src/train_bc.py](src/train_bc.py) | Behavior Cloning 정책 학습 스크립트 (데이터 전처리, MLP 훈련, 체크포인트 저장) |
+| [src/test_bc.py](src/test_bc.py) | 학습된 BC 모델을 Genesis에서 실행·시각화하는 추론 런너 (URDF 로드, 제어 루프) |
+| [src/shared_data_extracter.py](src/shared_data_extracter.py) | 연구실 공용 데이터 추출 유틸리티 (Blender/Genesis 데이터 공통 처리) |
+| [src/on_off_data_blender_data.py](src/on_off_data_blender_data.py) | Blender 프레임별 데이터 로거 (CSV 추출, spin·steer 처리) |
+| [urdf/car.urdf](urdf/car.urdf) | 차량 URDF 모델 (Genesis/ROS 좌표계 기준) |
 
 
 **Docs Index**

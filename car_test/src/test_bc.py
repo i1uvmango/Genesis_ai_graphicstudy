@@ -22,7 +22,7 @@ import genesis as gs
 class Config:
     """Inference configuration"""
     # Paths
-    model_path: str = "checkpoint/bc_policy.pth"
+    model_path: str = "checkpoint/drive_8_test.pth"  # Updated to use newly trained model
     urdf_path: str = "URDF/test_v1_simple.urdf"
     
     # Simulation parameters

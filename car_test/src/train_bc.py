@@ -1,447 +1,241 @@
-"""
-Professional Behavior Cloning Training Script for Genesis AI Navigation
-
-This script trains a neural network policy to clone expert driving behavior from 
-demonstration data collected in Blender and prepared for deployment in Genesis AI simulation.
-
-Data Pipeline:
-1. Load global-frame velocities and quaternions from CSV
-2. Transform to local vehicle frame using quaternion rotation
-3. Normalize states for stable training
-4. Train MLP policy with supervised learning
-
-Author: Genesis AI Team
-"""
+# train_blender_fixed.py
 
 import os
-import argparse
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
-from typing import Tuple, Dict, Any
+from numpy.linalg import norm
+
+# =========================
+# 설정: 경로 / 디바이스
+# =========================
+# CSV_PATH가 첫 번째 스크립트의 OUTPUT_CSV_PATH와 일치하는지 확인!
+CSV_PATH = "drive_8_test.csv"
+MODEL_PATH = "checkpoint/drive_8_test.pth"
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+
+# =========================
+# Dataset 정의
+# =========================
+class CarDataset(Dataset):
+    def __init__(self, states, actions, state_mean, state_std):
+        # 데이터는 이미 정규화되어 들어옴 (states는 스케일링, actions는 클리핑)
+        self.states = states.astype(np.float32)
+        self.actions = actions.astype(np.float32) 
+        self.state_mean = state_mean.astype(np.float32)
+        self.state_std = state_std.astype(np.float32)
+
+    def __len__(self):
+        return self.states.shape[0]
+
+    def __getitem__(self, idx):
+        # 상태 정규화: (상태 - 평균) / 표준편차
+        s = (self.states[idx] - self.state_mean) / self.state_std
+        a = self.actions[idx]
+        return torch.from_numpy(s), torch.from_numpy(a)
 
 
-# ============================================================================
-# Configuration
-# ============================================================================
-
-class Config:
-    """Training configuration"""
-    # Paths
-    csv_path: str = "drive_8_test.csv"
-    checkpoint_dir: str = "checkpoint"
-    model_name: str = "bc_policy.pth"
-    
-    # Training hyperparameters
-    num_epochs: int = 100
-    batch_size: int = 128
-    learning_rate: float = 1e-3
-    val_ratio: float = 0.2
-    random_seed: int = 42
-    
-    # Model architecture
-    state_dim: int = 6  # [lin_vx, lin_vy, lin_vz, ang_vx, ang_vy, ang_vz] in local frame
-    action_dim: int = 2  # [steering, throttle]
-    hidden_dim: int = 64
-    
-    # Device
-    device: str = "cuda" if torch.cuda.is_available() else "cpu"
-
-
-# ============================================================================
-# Data Processing
-# ============================================================================
-
-def quaternion_rotate_inverse(vectors: np.ndarray, quaternions: np.ndarray) -> np.ndarray:
-    """
-    Rotate vectors from global frame to local frame using quaternion inverse.
-    
-    Args:
-        vectors: (N, 3) array of vectors in global frame
-        quaternions: (N, 4) array of quaternions [w, x, y, z]
-    
-    Returns:
-        (N, 3) array of vectors in local frame
-    """
-    # Extract quaternion components
-    w = quaternions[:, 0]
-    x = quaternions[:, 1]
-    y = quaternions[:, 2]
-    z = quaternions[:, 3]
-    
-    # Extract vector components
-    vx = vectors[:, 0]
-    vy = vectors[:, 1]
-    vz = vectors[:, 2]
-    
-    # Apply inverse quaternion rotation
-    # Formula: v_local = q_conj * v_global * q
-    # Using optimized vector rotation formula
-    
-    # Conjugate quaternion (inverse for unit quaternions)
-    qx, qy, qz = -x, -y, -z
-    qw = w
-    
-    # First rotation: t = q_conj * v
-    t_w = -qx * vx - qy * vy - qz * vz
-    t_x = qw * vx + qy * vz - qz * vy
-    t_y = qw * vy + qz * vx - qx * vz
-    t_z = qw * vz + qx * vy - qy * vx
-    
-    # Second rotation: v_local = t * q
-    out_x = t_w * x + t_x * w + t_y * z - t_z * y
-    out_y = t_w * y - t_x * z + t_y * w + t_z * x
-    out_z = t_w * z + t_x * y - t_y * x + t_z * w
-    
-    return np.stack([out_x, out_y, out_z], axis=1)
-
-
-def load_and_process_data(csv_path: str) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Load CSV data and process into state-action pairs.
-    
-    Args:
-        csv_path: Path to CSV file with columns:
-            - g_lin_vx, g_lin_vy, g_lin_vz (global linear velocity)
-            - g_ang_vx, g_ang_vy, g_ang_vz (global angular velocity)
-            - g_qw, g_qx, g_qy, g_qz (orientation quaternion)
-            - steer (steering angle)
-            - throttle_norm (normalized throttle)
-    
-    Returns:
-        states: (N, 6) array of local-frame velocities
-        actions: (N, 2) array of [steering, throttle]
-    """
-    print(f"Loading data from {csv_path}...")
-    df = pd.read_csv(csv_path)
-    
-    # Validate required columns
-    required_cols = [
-        "g_lin_vx", "g_lin_vy", "g_lin_vz",
-        "g_ang_vx", "g_ang_vy", "g_ang_vz",
-        "g_qw", "g_qx", "g_qy", "g_qz",
-        "steer", "throttle_norm"
-    ]
-    
-    missing_cols = set(required_cols) - set(df.columns)
-    if missing_cols:
-        raise ValueError(f"Missing required columns: {missing_cols}")
-    
-    # Extract global velocities
-    g_lin_vel = df[["g_lin_vx", "g_lin_vy", "g_lin_vz"]].values.astype(np.float32)
-    g_ang_vel = df[["g_ang_vx", "g_ang_vy", "g_ang_vz"]].values.astype(np.float32)
-    
-    # Extract orientation
-    g_quat = df[["g_qw", "g_qx", "g_qy", "g_qz"]].values.astype(np.float32)
-    
-    # Transform to local frame
-    print("Transforming velocities to local frame...")
-    l_lin_vel = quaternion_rotate_inverse(g_lin_vel, g_quat)
-    l_ang_vel = quaternion_rotate_inverse(g_ang_vel, g_quat)
-    
-    # CRITICAL: Blender data has 90° Z-rotation applied (ROT_B2G in blender_data_extract.py)
-    # We need to UNDO this rotation to get proper Genesis local frame (X=forward, POSITIVE)
-    # 90° Z-rotation: X→Y, Y→-X. Reverse: X=-Y, Y=X (then adjust for left convention)
-    print("Reversing Blender's Z-axis 90° rotation...")
-    
-    l_lin_vel_corrected = np.zeros_like(l_lin_vel)
-    l_lin_vel_corrected[:, 0] = -l_lin_vel[:, 1]  # X_genesis = -Y_rotated (forward = POSITIVE)
-    l_lin_vel_corrected[:, 1] = -l_lin_vel[:, 0]  # Y_genesis = -X_rotated (left)
-    l_lin_vel_corrected[:, 2] = l_lin_vel[:, 2]   # Z unchanged
-    
-    l_ang_vel_corrected = np.zeros_like(l_ang_vel)
-    l_ang_vel_corrected[:, 0] = -l_ang_vel[:, 1]  # Roll
-    l_ang_vel_corrected[:, 1] = -l_ang_vel[:, 0]  # Pitch
-    l_ang_vel_corrected[:, 2] = l_ang_vel[:, 2]   # Yaw unchanged
-    
-    l_lin_vel = l_lin_vel_corrected
-    l_ang_vel = l_ang_vel_corrected
-    
-    
-    # Combine into state vector
-    states = np.concatenate([l_lin_vel, l_ang_vel], axis=1)  # (N, 6)
-    
-    # Extract actions
-    actions = df[["steer", "throttle_norm"]].values.astype(np.float32)  # (N, 2)
-    
-    # Data validation
-    print(f"\nData Summary:")
-    print(f"  Total samples: {len(states)}")
-    print(f"  State shape: {states.shape}")
-    print(f"  Action shape: {actions.shape}")
-    print(f"\nState statistics (local frame):")
-    print(f"  Lin vel X: mean={states[:, 0].mean():.3f}, std={states[:, 0].std():.3f}")
-    print(f"  Lin vel Y: mean={states[:, 1].mean():.3f}, std={states[:, 1].std():.3f}")
-    print(f"  Lin vel Z: mean={states[:, 2].mean():.3f}, std={states[:, 2].std():.3f}")
-    print(f"  Ang vel X: mean={states[:, 3].mean():.3f}, std={states[:, 3].std():.3f}")
-    print(f"  Ang vel Y: mean={states[:, 4].mean():.3f}, std={states[:, 4].std():.3f}")
-    print(f"  Ang vel Z: mean={states[:, 5].mean():.3f}, std={states[:, 5].std():.3f}")
-    print(f"\nAction statistics:")
-    print(f"  Steering:  mean={actions[:, 0].mean():.3f}, std={actions[:, 0].std():.3f}")
-    print(f"  Throttle:  mean={actions[:, 1].mean():.3f}, std={actions[:, 1].std():.3f}")
-    
-    return states, actions
-
-
-# ============================================================================
-# Dataset
-# ============================================================================
-
-class BehaviorCloningDataset(Dataset):
-    """PyTorch dataset for behavior cloning"""
-    
-    def __init__(self, states: np.ndarray, actions: np.ndarray, 
-                 state_mean: np.ndarray, state_std: np.ndarray):
-        self.states = torch.from_numpy(states.astype(np.float32))
-        self.actions = torch.from_numpy(actions.astype(np.float32))
-        self.state_mean = torch.from_numpy(state_mean.astype(np.float32))
-        self.state_std = torch.from_numpy(state_std.astype(np.float32))
-    
-    def __len__(self) -> int:
-        return len(self.states)
-    
-    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
-        # Normalize state
-        state = (self.states[idx] - self.state_mean) / self.state_std
-        action = self.actions[idx]
-        return state, action
-
-
-def create_dataloaders(states: np.ndarray, actions: np.ndarray, 
-                       config: Config) -> Tuple[DataLoader, DataLoader, np.ndarray, np.ndarray]:
-    """
-    Create training and validation dataloaders with proper normalization.
-    
-    Args:
-        states: (N, state_dim) state array
-        actions: (N, action_dim) action array
-        config: Training configuration
-    
-    Returns:
-        train_loader: Training dataloader
-        val_loader: Validation dataloader
-        state_mean: State normalization mean
-        state_std: State normalization std
-    """
-    # Split train/val
-    np.random.seed(config.random_seed)
-    n_samples = len(states)
-    indices = np.random.permutation(n_samples)
-    
-    n_train = int(n_samples * (1 - config.val_ratio))
-    train_idx = indices[:n_train]
-    val_idx = indices[n_train:]
-    
-    states_train = states[train_idx]
-    actions_train = actions[train_idx]
-    states_val = states[val_idx]
-    actions_val = actions[val_idx]
-    
-    # Compute normalization statistics from training set only
-    state_mean = states_train.mean(axis=0)
-    state_std = states_train.std(axis=0) + 1e-6
-    
-    # Apply zero-centering to lateral and rotational velocities
-    # Only forward velocity should have non-zero mean
-    state_mean[1:] = 0.0
-    
-    print(f"\nNormalization parameters:")
-    print(f"  State mean: {state_mean}")
-    print(f"  State std:  {state_std}")
-    
-    # Create datasets
-    train_dataset = BehaviorCloningDataset(states_train, actions_train, state_mean, state_std)
-    val_dataset = BehaviorCloningDataset(states_val, actions_val, state_mean, state_std)
-    
-    # Create dataloaders
-    train_loader = DataLoader(train_dataset, batch_size=config.batch_size, 
-                             shuffle=True, num_workers=0)
-    val_loader = DataLoader(val_dataset, batch_size=config.batch_size, 
-                           shuffle=False, num_workers=0)
-    
-    print(f"\nDataset split:")
-    print(f"  Training samples: {len(train_dataset)}")
-    print(f"  Validation samples: {len(val_dataset)}")
-    
-    return train_loader, val_loader, state_mean, state_std
-
-
-# ============================================================================
-# Model
-# ============================================================================
-
-class BehaviorCloningPolicy(nn.Module):
-    """MLP policy for behavior cloning"""
-    
-    def __init__(self, state_dim: int, action_dim: int, hidden_dim: int):
+# =========================
+# MLP 정의 (test_bc.py와 동일한 구조)
+# =========================
+class CarControllerMLP(nn.Module):
+    def __init__(self, state_dim=6, hidden_dim=64, action_dim=2):
         super().__init__()
-        
-        self.network = nn.Sequential(
+        self.network = nn.Sequential(  # Changed from 'backbone' to 'network'
             nn.Linear(state_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, action_dim),
-            nn.Tanh()  # Output in [-1, 1] range
+            nn.Tanh()  # Moved Tanh inside Sequential
         )
-    
-    def forward(self, state: torch.Tensor) -> torch.Tensor:
-        return self.network(state)
+
+    def forward(self, x):
+        return self.network(x)  # Simplified - Tanh is already inside
 
 
-# ============================================================================
-# Training
-# ============================================================================
+# =========================
+# CSV 로드 + Global -> Local 변환 (핵심 수정 부분)
+# =========================
+def load_csv_and_build_targets(csv_path):
+    df = pd.read_csv(csv_path)
 
-def train_epoch(model: nn.Module, dataloader: DataLoader, 
-                optimizer: torch.optim.Optimizer, criterion: nn.Module,
-                device: str) -> float:
-    """Train for one epoch"""
-    model.train()
-    total_loss = 0.0
-    
-    for states, actions in dataloader:
-        states = states.to(device)
-        actions = actions.to(device)
-        
-        # Forward pass
-        predictions = model(states)
-        loss = criterion(predictions, actions)
-        
-        # Backward pass
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        
-        total_loss += loss.item() * len(states)
-    
-    return total_loss / len(dataloader.dataset)
+    # 1. State 가져오기 (Global)
+    req_cols = [
+        "g_lin_vx", "g_lin_vy", "g_lin_vz",
+        "g_ang_vx", "g_ang_vy", "g_ang_vz",
+        "g_qw", "g_qx", "g_qy", "g_qz", 
+        "steer", "throttle_norm" # Action Target
+    ]
+    for col in req_cols:
+        if col not in df.columns:
+            # 첫 번째 스크립트에서 CSV 컬럼을 확인하세요.
+            raise ValueError(f"CSV에 '{col}' 컬럼이 없습니다. (Blender 스크립트 확인 필요)")
+
+    # numpy 변환
+    g_lin_v = df[["g_lin_vx", "g_lin_vy", "g_lin_vz"]].to_numpy(dtype=np.float32)
+    g_ang_v = df[["g_ang_vx", "g_ang_vy", "g_ang_vz"]].to_numpy(dtype=np.float32)
+    g_q = df[["g_qw", "g_qx", "g_qy", "g_qz"]].to_numpy(dtype=np.float32) # (N, 4) [w, x, y, z]
 
 
-def validate(model: nn.Module, dataloader: DataLoader, 
-            criterion: nn.Module, device: str) -> float:
-    """Validate model"""
-    model.eval()
-    total_loss = 0.0
+    # 2. Global -> Local 변환 (현재 사용 안 함 - 이중 변환 버그 제거)
     
-    with torch.no_grad():
-        for states, actions in dataloader:
-            states = states.to(device)
-            actions = actions.to(device)
-            
-            predictions = model(states)
-            loss = criterion(predictions, actions)
-            
-            total_loss += loss.item() * len(states)
-    
-    return total_loss / len(dataloader.dataset)
+    l_lin_v = g_lin_v  # Already local
+    l_ang_v = g_ang_v  # Already local
+
+    # 4. State 구성
+    states = np.concatenate([l_lin_v, l_ang_v], axis=1) # (N, 6)
+
+    # 5. Action 가져오기 (CSV에서 정규화된 최종값 사용)
+    actions = df[["steer", "throttle_norm"]].to_numpy(dtype=np.float32)
+
+    # 6. 정규화 스케일 (Action Target은 이미 정규화되어 있으므로, 1.0으로 설정)
+    steer_scale = 1.0
+    omega_max = 1.0
+
+    return states, actions, steer_scale, omega_max
 
 
-def train(config: Config):
-    """Main training loop"""
+# =========================
+# DataLoader 구성 (state_mean[1:] = 0.0 로직 유지)
+# =========================
+def make_dataloaders(states, actions, batch_size=128, val_ratio=0.2, seed=42):
+    N = states.shape[0]
+    idx = np.arange(N)
+    rng = np.random.RandomState(seed)
+    rng.shuffle(idx)
+
+    split = int(N * (1.0 - val_ratio))
+    train_idx = idx[:split]
+    val_idx = idx[split:]
+
+    states_tr = states[train_idx]
+    actions_tr = actions[train_idx]
+    states_val = states[val_idx]
+    actions_val = actions[val_idx]
+
+    state_mean = states_tr.mean(axis=0)
+    state_std = states_tr.std(axis=0) + 1e-6
+
+    # [Bias Fix] 횡방향/회전 속도는 물리적으로 0이 중심이어야 함.
+    # 전진 속도(idx 0)를 제외한 나머지는 평균을 0으로 강제함.
+    state_mean[1:] = 0.0
+
+    train_ds = CarDataset(states_tr, actions_tr, state_mean, state_std)
+    val_ds = CarDataset(states_val, actions_val, state_mean, state_std)
+
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
+    val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False)
+
+    return train_loader, val_loader, state_mean, state_std
+
+
+# =========================
+# 학습 루프 (Train Loop)
+# =========================
+# (나머지 train 함수는 동일하게 유지됩니다.)
+
+def train(
+    csv_path=CSV_PATH,
+    model_path=MODEL_PATH,
+    num_epochs=100,
+    batch_size=128,
+    lr=1e-3,
+):
+    states, actions, steer_scale, omega_max = load_csv_and_build_targets(csv_path)
+
+    print(f"[INFO] Loaded CSV: {csv_path}")
+    print(f"       states:      {states.shape}")
+    print(f"       actions:     {actions.shape}")
     
-    # Load and process data
-    states, actions = load_and_process_data(config.csv_path)
-    
-    # Create dataloaders
-    train_loader, val_loader, state_mean, state_std = create_dataloaders(
-        states, actions, config
+    # states의 첫 번째 컬럼(l_lin_vx)의 평균을 확인하여 축 방향 체크
+    l_lin_vx_mean = states[:, 0].mean()
+    if abs(l_lin_vx_mean) < 0.1:
+        print("[WARNING] Local Lin Vel X is near zero. Check coordinate system.")
+
+
+    train_loader, val_loader, state_mean, state_std = make_dataloaders(
+        states, actions, batch_size=batch_size
     )
-    
-    # Initialize model
-    model = BehaviorCloningPolicy(
-        state_dim=config.state_dim,
-        action_dim=config.action_dim,
-        hidden_dim=config.hidden_dim
-    ).to(config.device)
-    
-    # Initialize optimizer and loss
-    optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
+
+    state_dim = states.shape[1]
+    action_dim = actions.shape[1]
+
+    model = CarControllerMLP(state_dim=state_dim, action_dim=action_dim).to(DEVICE)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = nn.MSELoss()
-    
-    # Training loop
-    print(f"\n{'='*60}")
-    print(f"Starting training on {config.device}")
-    print(f"{'='*60}\n")
-    
-    best_val_loss = float('inf')
-    os.makedirs(config.checkpoint_dir, exist_ok=True)
-    checkpoint_path = os.path.join(config.checkpoint_dir, config.model_name)
-    
-    for epoch in range(1, config.num_epochs + 1):
-        # Train
-        train_loss = train_epoch(model, train_loader, optimizer, criterion, config.device)
-        
-        # Validate
-        val_loss = validate(model, val_loader, criterion, config.device)
-        
-        # Print progress
-        print(f"Epoch {epoch:3d}/{config.num_epochs} | "
-              f"Train Loss: {train_loss:.6f} | "
-              f"Val Loss: {val_loss:.6f}", end="")
-        
-        # Save best model
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
-            
-            # Save checkpoint with all necessary information
-            checkpoint = {
-                'model_state_dict': model.state_dict(),
-                'state_mean': state_mean.tolist(),
-                'state_std': state_std.tolist(),
-                'config': {
-                    'state_dim': config.state_dim,
-                    'action_dim': config.action_dim,
-                    'hidden_dim': config.hidden_dim,
+
+    os.makedirs(os.path.dirname(model_path) or ".", exist_ok=True)
+    best_val = float("inf")
+
+    # ... (Train/Validation Loop은 이전 코드와 동일) ...
+    for epoch in range(1, num_epochs + 1):
+        # ----- Train -----
+        model.train()
+        tr_loss_sum = 0.0
+        tr_n = 0
+
+        for s_batch, a_batch in train_loader:
+            s_batch = s_batch.to(DEVICE)
+            a_batch = a_batch.to(DEVICE)
+
+            pred = model(s_batch)
+            loss = criterion(pred, a_batch)
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            bs = s_batch.size(0)
+            tr_loss_sum += loss.item() * bs
+            tr_n += bs
+
+        train_loss = tr_loss_sum / max(1, tr_n)
+
+        # ----- Validation -----
+        model.eval()
+        val_loss_sum = 0.0
+        val_n = 0
+        with torch.no_grad():
+            for s_batch, a_batch in val_loader:
+                s_batch = s_batch.to(DEVICE)
+                a_batch = a_batch.to(DEVICE)
+
+                pred = model(s_batch)
+                loss = criterion(pred, a_batch)
+
+                bs = s_batch.size(0)
+                val_loss_sum += loss.item() * bs
+                val_n += bs
+
+        val_loss = val_loss_sum / max(1, val_n)
+
+        print(f"[Epoch {epoch:03d}] train={train_loss:.6f}  val={val_loss:.6f}")
+
+        # 베스트 모델 저장 (test_bc.py와 호환되는 형식)
+        if val_loss < best_val:
+            best_val = val_loss
+            ckpt = {
+                "model_state_dict": model.state_dict(),  # test_bc.py expects this key
+                "state_mean": state_mean.tolist(),
+                "state_std": state_std.tolist(),
+                "config": {  # test_bc.py expects this structure
+                    "state_dim": state_dim,
+                    "action_dim": action_dim,
+                    "hidden_dim": 64,  # from CarControllerMLP default
                 },
-                'epoch': epoch,
-                'val_loss': val_loss,
+                "epoch": epoch,
+                "val_loss": val_loss,
             }
-            
-            torch.save(checkpoint, checkpoint_path)
-            print(f" ← Best model saved!")
-        else:
-            print()
-    
-    print(f"\n{'='*60}")
-    print(f"Training completed!")
-    print(f"Best validation loss: {best_val_loss:.6f}")
-    print(f"Model saved to: {checkpoint_path}")
-    print(f"{'='*60}\n")
+            torch.save(ckpt, model_path)
+            print(f"  ↳ Saved best model to '{model_path}' (val={val_loss:.6f})")
 
-
-# ============================================================================
-# Main
-# ============================================================================
-
-def main():
-    parser = argparse.ArgumentParser(description="Train Behavior Cloning Policy")
-    parser.add_argument('--csv', type=str, default=Config.csv_path,
-                       help='Path to CSV data file')
-    parser.add_argument('--output', type=str, default=Config.model_name,
-                       help='Output model filename')
-    parser.add_argument('--epochs', type=int, default=Config.num_epochs,
-                       help='Number of training epochs')
-    parser.add_argument('--batch_size', type=int, default=Config.batch_size,
-                       help='Batch size')
-    parser.add_argument('--lr', type=float, default=Config.learning_rate,
-                       help='Learning rate')
-    
-    args = parser.parse_args()
-    
-    # Update config from args
-    config = Config()
-    config.csv_path = args.csv
-    config.model_name = args.output
-    config.num_epochs = args.epochs
-    config.batch_size = args.batch_size
-    config.learning_rate = args.lr
-    
-    # Train
-    train(config)
-
+    print("Done.")
+    print("Best val_loss =", best_val)
+    print("state_mean:", state_mean)
+    print("state_std :", state_std)
 
 if __name__ == "__main__":
-    main()
+    train()

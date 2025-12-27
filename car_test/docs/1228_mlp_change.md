@@ -25,12 +25,32 @@ g_pos_x, g_pos_y, g_pos_z, g_qw, g_qx, g_qy, g_qz, g_lin_vx, g_lin_vy, g_lin_vz,
 ```
 * 위치 정보 추가해서 학습시킴 &rarr; 8자 주행에 필요한 데이터
 
+## 📐 MLP 구조 확장
+
+### 기존 구조
+- 입력 차원: 12 (기본) → 15 (전역 위치 포함)
+- 2 hidden layers, 각 128 유닛, ReLU 활성화
+- 출력: `steering`, `throttle`
+
+### 확장 내용
+- **입력 차원**을 15 → 20 로 확대 (추가 피처: `g_pos`, `g_quat`, `v_long`, `spin_R` 등)
+- **Hidden layers**를 3개로 증가, 각 256 유닛, `LeakyReLU` 사용
+- **Batch Normalization**을 각 hidden layer 뒤에 삽입해 학습 안정성 향상
+- **Dropout** (p=0.2) 적용하여 과적합 방지
+- **출력 레이어**에 `tanh` (steering)와 `sigmoid` (throttle) 클램프 적용
+
+### 기대 효과
+- 더 복잡한 8자 궤적 패턴을 학습할 수 있는 표현력 확보
+- 데이터 다양화 및 통합 학습 시 과적합 감소
+- 학습 수렴 속도 향상 및 안정적인 추론 결과
+
 ## 3️⃣ 현재 코드 상태 (2025‑12‑28 기준)
 - [train 코드](../src/train_bc.py) : 15‑차원 입력 (`g_pos`위치 포함) 으로 학습 준비 완료.
 - [추론 및 시뮬레이션 실행](../src/test_bc.py) : `g_pos` 사용, Z‑패치 **삭제**, Throttle 전처리 최신 로직 적용.
 - [데이터 추출 코드](../src/on_off_data_blender_data.py) : Spin 절댓값, 이동 평균, `v_long` 기반 Throttle 로직 적용.
 
-
+### 여전히 8자 움직임 보단 원을 그리는 차량
+  ![](../res/2025-12-28%20022038.gif)
 ## 4️⃣ 남은 과제 & 다음 단계
 1. **데이터 다양화 및 양 확보**
    - 현재 8자 트랙 하나만 사용 → 과적합 위험.
@@ -50,24 +70,6 @@ g_pos_x, g_pos_y, g_pos_z, g_qw, g_qx, g_qy, g_qz, g_lin_vx, g_lin_vy, g_lin_vz,
 - **Z‑패치**는 되돌렸고, 현재 문제는 **Y‑축 오프셋**(≈24 m) 으로 판단됨.
 - 앞으로는 **데이터 증량**과 **통합 데이터**를 통해 8자 트랙을 정확히 따라가도록 모델을 강화할 예정.
 
-## 📐 MLP 구조 확장
-
-### 기존 구조
-- 입력 차원: 12 (기본) → 15 (전역 위치 포함)
-- 2 hidden layers, 각 128 유닛, ReLU 활성화
-- 출력: `steering`, `throttle`
-
-### 확장 내용
-- **입력 차원**을 15 → 20 로 확대 (추가 피처: `g_pos`, `g_quat`, `v_long`, `spin_R` 등)
-- **Hidden layers**를 3개로 증가, 각 256 유닛, `LeakyReLU` 사용
-- **Batch Normalization**을 각 hidden layer 뒤에 삽입해 학습 안정성 향상
-- **Dropout** (p=0.2) 적용하여 과적합 방지
-- **출력 레이어**에 `tanh` (steering)와 `sigmoid` (throttle) 클램프 적용
-
-### 기대 효과
-- 더 복잡한 8자 궤적 패턴을 학습할 수 있는 표현력 확보
-- 데이터 다양화 및 통합 학습 시 과적합 감소
-- 학습 수렴 속도 향상 및 안정적인 추론 결과
 
 ---
 *작성일: 2025‑12‑28*

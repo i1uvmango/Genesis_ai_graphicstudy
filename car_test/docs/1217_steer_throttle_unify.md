@@ -81,3 +81,14 @@ Up: +Z 방향
 BC training 코드: [train_bc.py](../src/train_bc.py)  
 
 BC 추론 및 실행 코드: [test_bc.py](../src/test_bc.py)  
+
+
+
+* 브레이크 추가, throttle 음수나오면 안됨, 
+* 타임라인, 인덱스 맞추기
+30일 미팅
+
+
+* 브레이크 추가, throttle 음수나오면 안됨, 
+* 타임라인, 인덱스 맞추기
+30일 미팅

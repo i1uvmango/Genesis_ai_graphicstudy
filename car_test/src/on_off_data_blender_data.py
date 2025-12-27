@@ -12,9 +12,12 @@ FRONT_RIGHT_WHEEL = "Corvette.Vehicle Body.0.FR0_Wheel.RB"
 REAR_LEFT_WHEEL   = "Corvette.Vehicle Body.1.BL1_Wheel.RB"
 REAR_RIGHT_WHEEL  = "Corvette.Vehicle Body.1.BR0_Wheel.RB"
 
-OUTPUT_CSV_PATH = "E:\MK\data\drive_8_test.csv"
+OUTPUT_CSV_PATH = "E:\\MK\\data\\drive__test.csv"
 
-LOGGING_SWITCH = True 
+# =====================
+# LOGGING ON/OFF SWITCH
+# =====================
+ENABLE_LOGGING = True  # Set to False to disable data extraction
 
 # 네가 쓰던 forward 정의(그대로)
 BLENDER_FORWARD_LOCAL = Vector((0.0, -1.0, 0.0))
@@ -50,10 +53,14 @@ def get_eval(obj, depsgraph):
 
 PREV = {}        # name -> {"loc": Vector, "quat": Quaternion}
 PREV_SPIN = {}   # wheel_name -> prev_twist_angle_unwrapped
+SPIN_BUFFER = [] # Moving Average buffer for spin_R smoothing
+SPIN_BUFFER_SIZE = 5  # Number of frames to average
 
 def reset_caches():
+    global SPIN_BUFFER
     PREV.clear()
     PREV_SPIN.clear()
+    SPIN_BUFFER = []
 
 def vel_angvel_from_eval(name: str, obj_eval, dt: float):
     loc = obj_eval.matrix_world.to_translation().copy()
@@ -214,15 +221,19 @@ def sample_and_write(scene, depsgraph, frame, dt):
             ang += math.pi
         return ang
 
-    steer_raw = 0.5 * (wheel_steer_angle(wFL) + wheel_steer_angle(wFR))
-    
-    # Store raw steering angle (no normalization)
-    steer = steer_raw
+    steer = 0.5 * (wheel_steer_angle(wFL) + wheel_steer_angle(wFR))
 
     # rear spin 통일
     spin_RL = wheel_spin_rate_clean(REAR_LEFT_WHEEL,  wRL, car, dt)
     spin_RR = wheel_spin_rate_clean(REAR_RIGHT_WHEEL, wRR, car, dt)
-    spin_R = 0.5 * (spin_RL + spin_RR)
+    spin_R_raw = 0.5 * (spin_RL + spin_RR)
+    
+    # Moving Average 적용 (절댓값에 적용하여 부호 상쇄 방지)
+    global SPIN_BUFFER
+    SPIN_BUFFER.append(abs(spin_R_raw))  # abs() 적용!
+    if len(SPIN_BUFFER) > SPIN_BUFFER_SIZE:
+        SPIN_BUFFER.pop(0)
+    spin_R = sum(SPIN_BUFFER) / len(SPIN_BUFFER)  # 이제 항상 양수
 
     # longitudinal speed (차체 전방방향 성분)
     v_long = float(v_B.dot(body_fwd_world))
@@ -242,7 +253,7 @@ def sample_and_write(scene, depsgraph, frame, dt):
         rot_G.w, rot_G.x, rot_G.y, rot_G.z,
         lin_v_G.x, lin_v_G.y, lin_v_G.z,
         ang_v_G.x, ang_v_G.y, ang_v_G.z,
-        steer,  # Raw steering angle in radians
+        steer,
         v_long,
         spin_R,
         throttle_raw,
@@ -251,6 +262,10 @@ def sample_and_write(scene, depsgraph, frame, dt):
     append_row(OUTPUT_CSV_PATH, row)
 
 def export_all_frames(start_frame=None, end_frame=None):
+    if not ENABLE_LOGGING:
+        print("[CarLogger] ⏸️ Logging DISABLED (ENABLE_LOGGING=False)")
+        return
+    
     scene = bpy.context.scene
 
     s = scene.frame_start if start_frame is None else int(start_frame)
@@ -278,59 +293,6 @@ def export_all_frames(start_frame=None, end_frame=None):
     bpy.context.view_layer.update()
     print(f"[CarLogger] 완료! -> {OUTPUT_CSV_PATH}")
 
-# =====================
-# HANDLER LOGIC
-# =====================
-last_frame_handler = None
-
-def car_logger_handler(scene):
-    global last_frame_handler
-    
-    # 씬/의존성 그래프 가져오기
-    depsgraph = bpy.context.evaluated_depsgraph_get()
-    frame = scene.frame_current
-    
-    # FPS 계산
-    fps = scene.render.fps / scene.render.fps_base
-    
-    # dt 계산
-    if last_frame_handler is None:
-        dt = 0.0
-    else:
-        dt = (frame - last_frame_handler) / fps
-        if dt < 0: dt = 0.0 # 프레임 루프/점프 시 방어
-        
-    last_frame_handler = frame
-    
-    # 샘플링 및 저장
-    sample_and_write(scene, depsgraph, frame, dt)
-
-def register_logger():
-    unregister_logger() # 기존 핸들러 제거
-    init_csv(OUTPUT_CSV_PATH)
-    reset_caches()
-    
-    global last_frame_handler
-    last_frame_handler = None
-    
-    bpy.app.handlers.frame_change_post.append(car_logger_handler)
-    print(f"[CarLogger] 핸들러 등록됨. Play를 누르면 '{OUTPUT_CSV_PATH}'에 기록됩니다.")
-
-def unregister_logger():
-    handlers = bpy.app.handlers.frame_change_post
-    to_remove = [h for h in handlers if getattr(h, "__name__", "") == "car_logger_handler"]
-    for h in to_remove:
-        handlers.remove(h)
-    print("[CarLogger] 핸들러 제거됨.")
-
 if __name__ == "__main__":
-    # 로깅 스위치 (Config 상단에 추가 권장, 여기서는 하드코딩 혹은 상단 변수 참조)
-    # 사용자가 직접 상단에서 LOGGING_SWITCH = True/False 조절한다고 가정
-    
-    
-    if LOGGING_SWITCH:
-        register_logger()
-        # 만약 배치 추출(강제 순회)을 원하면 아래 주석 해제
-        # export_all_frames(1, 250)
-    else:
-        unregister_logger()
+    # Export 2500 frames (approx 10 laps) to increase data diversity
+    export_all_frames(1, 2500)

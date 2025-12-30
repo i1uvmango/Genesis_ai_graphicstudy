@@ -5,11 +5,14 @@
 - **목표**: Genesis 시뮬레이션에서 8자(figure‑8) 트랙을 정확히 따라가게 하는 행동 복제(BC) 모델 구현.
 - **스티어링이 -1.0(오른쪽)으로 포화**하고, **Throttle이 음수/진동**하는 문제를 보여 이를 해결하고자 함
 
-## throttle 정의 
+## 토크 ,throttle, 차체속도 간의 관계
+
+* 5 프레임 평균 → spin_R → 절댓값을 취해 크기 → v_long 의 부호와 결합 → 토크(throttle_raw)
+
 | 동작                     | v_long (전방 속도)                              | throttle_raw (물리량)          | throttle_norm (‑1 ~ 1) | 토크 방향/의미                                 |
 |--------------------------|------------------------------------------------|--------------------------------|------------------------|-----------------------------------------------|
 | 전진 (가속)              | v_long  >  V_LONG_EPS (양수, 충분히 빠름)      | + abs(spin_R) (양수)           | > 0 (양수)              | 양의 토크 → 차가 앞쪽으로 가속                |
-| 브레이크 (감속)          | v_long  >  V_LONG_EPS (양수) **하지만** 외부에서 `throttle_norm < 0` 를 강제로 주입 | 미정의        | 미정의             | 토크 0 으로 만드는 힘 가해져 정지하도록 로직 필요|
+| 브레이크 (미정의 - 감쇠 브레이크 예정 )          | v_long  >  V_LONG_EPS (양수) **하지만** 외부에서 `throttle_norm < 0` 를 강제로 주입 | 미정의        | 미정의             | 토크 0 으로 만드는 힘 가해져 정지하도록 로직 필요|
 | 토크 없이 이동 (Coasting) | abs(v_long) ≤ V_LONG_EPS (거의 정지, 속도 거의 0) | 0.0                            | 0.0                    | 토크 없음 → 관성에 따라 움직이거나 마찰·공기 저항에 의해 서서히 감속 |
 | 후진 (역방향 가속)       | v_long  <  ‑V_LONG_EPS (음수, 충분히 빠름)      | ‑ abs(spin_R) (음수)           | < 0 (음수)              | 음의 토크 → 차가 뒤쪽으로 가속(후진)          |
 ## 주요 개선 작업 
@@ -17,6 +20,7 @@
 |------|------|------|-----------|------|
 | **①** | **전역 위치(`g_pos`) 피처 추가** – 모델이 현재 위치를 알 수 있게 함. | `new_train.py`, `test_bc.py` | 위치정보 `g_pos_x/y/z` 추가 / `state = np.concatenate([g_pos, …])` | 8자 구분에 필수. |
 | **②** | **Throttle 전처리 개선** – 음수/진동 방지. | `blender_data_extract.py` | `abs(spin_R_raw)` → `SPIN_BUFFER` 평균, `v_long` 으로 방향 결정, 정지 구역 `V_LONG_EPS` 적용. | x |
+
 ### 데이터 전처리 추가 사항
 ### Moving-Average Smoothing
 * SPIN_BUFFER (size 5) 로 최근 회전량 평균을 사용해 급격한 변동을 완화.(throttle의 평균값을 사용하는 sliding window)
@@ -36,6 +40,7 @@ throttle_norm = clamp(throttle_raw / THROTTLE_OMEGA_MAX, -1.0, 1.0)
 g_pos_x, g_pos_y, g_pos_z, g_qw, g_qx, g_qy, g_qz, g_lin_vx, g_lin_vy, g_lin_vz, g_ang_vx, g_ang_vy, g_ang_vz, v_long, throttle_norm
 ```
 * 위치 정보 추가해서 학습시킴 &rarr; 8자 주행에 필요한 데이터
+* 원래는 속도를 유도하기 위한 데이터였음
 
 ## 📐 MLP 구조 확장
 
@@ -48,6 +53,7 @@ g_pos_x, g_pos_y, g_pos_z, g_qw, g_qx, g_qy, g_qz, g_lin_vx, g_lin_vy, g_lin_vz,
 - **입력 차원**을 15 → 20 로 확대 (추가 피처: `g_pos`, `g_quat`, `v_long`, `spin_R` 등)
 - **Hidden layers**를 3개로 증가, 각 256 유닛, `LeakyReLU` 사용
    * 미분값에 의한 노이즈가 많아서 `LeakyReLU` 사용
+   * 어떤 뉴런이 학습 중 음수 영역으로만 들어가 gradient가 0이 되어 업데이트되지 않는 현상 방지
 - **Dropout** (p=0.2) 적용하여 과적합 방지
 - **출력 레이어**에 `tanh` (steering)와 `sigmoid` (throttle) 클램프 적용
 

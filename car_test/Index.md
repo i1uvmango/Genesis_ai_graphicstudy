@@ -47,6 +47,7 @@ Blender에서 가이드 경로 주행 데이터 수집 중 핸들러 잔존·글
 ---
 #### [[24-12-17] steer_throttle_unify.md](docs/1217_steer_throttle_unify.md)
 앞바퀴 조향·뒷바퀴 스로틀 통일, throttle 노이즈 deadzone 적용 및 Blender↔Genesis 좌표계 재정렬으로 데이터 안정화
+#### [[24-12-28] MLP 개선 및 토크/스루틀 정의](docs/1228_mlp_change.md) – 데이터 설명, 전처리 개선 내용 & MLP 구조 개선
 
 ---
 

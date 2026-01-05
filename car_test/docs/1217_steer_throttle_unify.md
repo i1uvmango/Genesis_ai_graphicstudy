@@ -5,6 +5,39 @@
 * Throttle 도 뒷바퀴의 평균값으로 통일  
 &rarr; 수치 안정성 확보
 
+### 데이터 변수 리캡
+### 자세(Orientation)
+```
+g_qw, g_qx, g_qy, g_qz (Quaternion)
+```
+- 차가 어느 방향을 보고 있는지, 회전 중인지, 기울어졌는지 등 차량의 3차원 자세를 나타냄
+- 이 정보가 없으면 차량이 직진 중인지 회전 중인지 구분 X
+
+### 선속도(Linear velocity)
+```
+g_lin_vx, g_lin_vy, g_lin_vz
+```
+- x,y,z 방향에 대한 차량의 속도
+- throttle 결정의 핵심 근거
+
+### 각속도(Angular velocity)
+```
+g_ang_vx, g_ang_vy, g_ang_vz
+```
+- yaw(좌우 회전), pitch(앞뒤), roll(좌우 기울기) 정보
+- steering 정보
+### 전방 속도(Longitudinal velocity)
+```
+v_long
+```
+- “차체가 바라보는 방향”으로의 속도
+- throttle 의 부호 보정에 영향을 줌(노이즈 개선)
+
+### 뒷바퀴 평균 회전 속도
+```
+spin_R = (ω_RL + ω_RR) / 2
+```
+
 ## 2. 데이터 추출 코드
 데이터 추출 코드: [blender_data_extract](../src/on_off_data_blender_data.py)
 * 정규화 `steer_norm`, `throttle_l` 

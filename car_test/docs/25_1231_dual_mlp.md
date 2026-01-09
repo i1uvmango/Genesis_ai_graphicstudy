@@ -71,3 +71,6 @@ python 2mlp/inference_2mlp.py --model 2mlp/checkpoint/dual_mlp_best.pth --csv dr
 - **기능**: 저장된 모델을 로드하여 시뮬레이션 상에서 차량을 제어합니다.
 
 ---
+
+
+

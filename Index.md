@@ -53,7 +53,7 @@ Blender에서 가이드 경로 주행 데이터 수집 중 핸들러 잔존·글
 - Waypoint 기반 학습 및 Dual MLP 구조 소개, 데이터 통합 및 성능 분석.
 
 #### [[26-01-06] 0106_waypoint.md](car_test/docs/26_0106_waypoint.md)
-- Waypoint 방법론 적용 및 실험 결과, 경로 추적 개선 내용.
+- Waypoint 방법론 적용, GenesisAI의 Rigid Solver differential 미지원, pure-pursuit 알고리즘 실험 결과, 경로 추적 개선 내용.
 
 ---
 

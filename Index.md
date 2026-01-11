@@ -49,6 +49,12 @@ Blender에서 가이드 경로 주행 데이터 수집 중 핸들러 잔존·글
 앞바퀴 조향·뒷바퀴 스로틀 통일, throttle 노이즈 deadzone 적용 및 Blender↔Genesis 좌표계 재정렬으로 데이터 안정화
 #### [[24-12-28] MLP 개선 및 토크/스루틀 정의](docs/1228_mlp_change.md) – 데이터 설명, 전처리 개선 내용 & MLP 구조 개선
 
+#### [[25-12-30] 1230_waypoint_and_dual_mlp.md](car_test/docs/25_1230_waypoint_and_dual_mlp.md)
+- Waypoint 기반 학습 및 Dual MLP 구조 소개, 데이터 통합 및 성능 분석.
+
+#### [[26-01-06] 0106_waypoint.md](car_test/docs/26_0106_waypoint.md)
+- Waypoint 방법론 적용 및 실험 결과, 경로 추적 개선 내용.
+
 ---
 
 
@@ -59,8 +65,9 @@ Blender에서 가이드 경로 주행 데이터 수집 중 핸들러 잔존·글
 ### Monthly Progress
 - **10월**: Genesis URDF 차량 모델 구축 및 Blender → Genesis 임포트 파이프라인 구축
 - **11월**: MLP 기반 물리 파라미터 학습 시스템 개발 및 Behavior Cloning 적용
-- **12월**: 데이터 전처리 최적화 및 좌표계 정렬 이슈 해결 (진행 중)
+- **12월**: 데이터 전처리 최적화 및 좌표계 정렬 이슈 해결 
+- **1월**: Waypoint 기반 학습 및 Dual MLP 구조 적용, 통합 데이터 활용 및 강화학습 적용
 
 ---
 
-*Last Updated: 2024-12-27*
+*Last Updated: 2026-01-12*

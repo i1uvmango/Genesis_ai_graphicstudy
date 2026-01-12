@@ -104,7 +104,7 @@
 *   **PPO 학습 준비 완료**: 이제 PPO를 통해 **스마트한 속도 조절(Throttle Control)**과 **극한의 코너링 보정(Residual Steering)**을 학습할 준비가 됨.
     ![alt text](../res/0106/0106_lookahead.png)
 
-    <video controls src="../res/0106/0106_purepursuit.mp4" title="pure pursuit algorithm based control"></video>
+    ![alt text](../res/0106/0106_purepursuit.gif)
     * pure pursuit algorithm based control, no ppo training
 
 
@@ -175,7 +175,7 @@ L_throttle = L_speed + w_smooth * Δthrottle²
 
 <video controls src="../res/0106/0106_ppo_trained.mp4" title="ppo trained control"></video>
 
-
+https://drive.google.com/file/d/1_Cx-tLFzT3iqk14C9zzF8wkb-LZU2ZRn/view?usp=sharing
 ## next step
 
 * 구동계 동기화 어떤 방식으로 할건지

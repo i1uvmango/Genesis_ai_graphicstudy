@@ -123,6 +123,7 @@ def run_inference(args):
     csv_path = args.csv if args.csv else config.reference_csv
     ref_data = load_reference_3d(csv_path, config.device)
     path_points = ref_data["path_points"]
+    arc_length = ref_data["arc_length"]
     
     # Start pose
     start_pos_np = path_points[0].cpu().numpy().copy()
@@ -203,7 +204,7 @@ def run_inference(args):
         
         # Observations
         target_idx, target_pos, nearest_idx = compute_target_waypoint_batch(
-            pos, path_points, v_long, config, progress_idx=progress_idx
+            pos, path_points, v_long, config, arc_length, progress_idx=progress_idx
         )
         
         # Update progress monotonically
@@ -243,7 +244,7 @@ def run_inference(args):
         speed = v_body_post[0, 0].item()
         
         target_idx_post, target_pos_post, _ = compute_target_waypoint_batch(
-            pos_post, path_points, v_body_post[:, 0], config, progress_idx=progress_idx
+            pos_post, path_points, v_body_post[:, 0], config, arc_length, progress_idx=progress_idx
         )
         target_rel_post = torch.bmm(R_post.transpose(1, 2), (target_pos_post - pos_post).unsqueeze(-1)).squeeze(-1)
         lat_err = target_rel_post[0, 1].item()

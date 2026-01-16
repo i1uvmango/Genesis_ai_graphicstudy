@@ -31,6 +31,9 @@ V_LONG_EPS = 0.10
 # throttle 정규화 스케일( rad/s 기준 )
 THROTTLE_OMEGA_MAX = 60.0
 
+# steer 정규화 스케일 (35도 = 약 0.61 rad)
+MAX_STEER_RAD = math.radians(35.0)
+
 # Blender -> Genesis 좌표 변환(네 기존 유지)
 ROT_B2G = Matrix.Rotation(math.radians(90.0), 3, 'Z')
 def vec_B_to_G(v_b: Vector) -> Vector: return ROT_B2G @ v_b

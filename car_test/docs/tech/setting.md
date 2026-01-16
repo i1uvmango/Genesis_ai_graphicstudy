@@ -138,7 +138,13 @@
 ┌─────────────────────────────────────────────────────────────────────────┐
 │  World State (Simulation)                                               │
 │  • 차량 위치, 자세, 속도, 각속도                                           │
-│  • 경로 Waypoints                                                        │
+│  • 경로 Waypoints + Arc-length                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────┐
+│  Arc-Length Lookahead                                                   │
+│  s_target = s_nearest + L (3.0m)                                        │
+│  target_idx = searchsorted(arc_length, s_target)                        │
 └─────────────────────────────────────────────────────────────────────────┘
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -181,23 +187,19 @@
 
 #### 주요 변수 수식
 
-**목표점 상대위치** (Arc-Length Lookahead):
-$$
-\vec{p}_{target}^{body} = R_{car}^T \cdot (\vec{p}_{target}^{world} - \vec{p}_{car}^{world})
-$$
+**Arc-Length Lookahead**:
 
-- $s_{target} = s_{nearest} + L$ (L = 5.0m)
-- target_idx = $\arg\min_i |s_i - s_{target}|$
+$$s_{target} = s_{nearest} + L \quad (L = 3.0\text{m})$$
+
+$$\text{target\_idx} = \text{searchsorted}(\text{arc\_length}, s_{target})$$
+
+**목표점 상대위치**:
+
+$$\vec{p}_{target}^{body} = R_{car}^T \cdot (\vec{p}_{target}^{world} - \vec{p}_{car}^{world})$$
 
 **속도 변환**:
-$$
-\vec{v}_{body} = R_{car}^T \cdot \vec{v}_{world}
-$$
 
-**슬립 지표**:
-$$
-\text{slip} = \frac{a_{prev} - v_x}{v_{max}}
-$$
+$$\vec{v}_{body} = R_{car}^T \cdot \vec{v}_{world}$$
 
 ---
 
@@ -246,6 +248,7 @@ Output: action ∈ [-1, 1]²
 #### 수식
 
 **Forward Pass**:
+
 $$h_1 = \text{ReLU}(W_1 \cdot \text{obs} + b_1)$$
 
 $$h_2 = \text{ReLU}(W_2 \cdot h_1 + b_2)$$
@@ -254,21 +257,13 @@ $$\mu = W_3 \cdot h_2 + b_3$$
 
 $$\sigma = \exp(\log\_std)$$
 
-**Action Sampling (Stochastic)**:
-$$a_{raw} \sim \mathcal{N}(\mu, \sigma^2)$$
+**Action Sampling**:
 
-$$a = \tanh(a_{raw})$$
-
-**Log Probability (Squashed Gaussian)**:
-$$
-\log \pi(a|s) = \log \mathcal{N}(a_{raw}|\mu, \sigma^2) - \sum_i \log(1 - \tanh^2(a_{raw,i}))
-$$
+$$a_{raw} \sim \mathcal{N}(\mu, \sigma^2), \quad a = \tanh(a_{raw})$$
 
 ---
 
 ### 6.1.4 Critic Network (Value MLP)
-
-#### 구조
 
 ```
 Input: obs ∈ ℝ^18
@@ -282,12 +277,6 @@ Input: obs ∈ ℝ^18
 Output: V(s) ∈ ℝ  (상태 가치)
 ```
 
-#### 수식
-
-$$
-V(s) = W_v \cdot \text{ReLU}(W_2 \cdot \text{ReLU}(W_1 \cdot \text{obs} + b_1) + b_2) + b_v
-$$
-
 ---
 
 ### 6.1.5 Output: Action (2차원)
@@ -297,60 +286,33 @@ $$
 | 0 | `accel_brake` | [-1, 1] | 가속(+) / 제동(-) |
 | 1 | `steer` | [-1, 1] | 우(+) / 좌(-) 조향 |
 
-#### Action → 물리 제어 변환
-
-**Throttle/Brake**:
-$$\tau_{engine} = \max(a_0, 0) \cdot \tau_{max}^{engine}$$
-
-$$\tau_{brake} = \max(-a_0, 0) \cdot \tau_{max}^{brake}$$
-
-$$\tau_{drive} = \max(\tau_{engine} - \tau_{brake}, 0)$$
-
-$$\omega_{target} = \frac{\tau_{drive} / \tau_{max}^{engine} \cdot v_{target}}{r_{wheel}}$$
-
-**Steering**:
-$$
-\delta = a_1 \cdot \delta_{max} \quad \text{(Position Control)}
-$$
-
 ---
 
-### 6.1.6 Learning: PPO Algorithm
+### 6.1.6 Reward Function
 
-#### Reward Function
+#### 총 보상 구조
 
-$$
-R = \underbrace{R_{align} + 2 \cdot R_{recover}}_{\text{Steering}} + \underbrace{R_{proj} + R_{arc}}_{\text{Progress}} + R_{forward} - \underbrace{P_{steer} - P_{rate} - P_{speed} - P_{stuck}}_{\text{Penalties}}
-$$
+$$R = \underbrace{R_{align} + 2 R_{recover}}_{\text{Steering}} + \underbrace{R_{proj} + R_{arc}}_{\text{Progress}} + R_{forward} - \underbrace{P_{lat}^2}_{\text{Lat Error}} - P_{others}$$
+
+#### 주요 보상 항목
 
 | 항목 | 수식 | 의미 |
 |:---|:---|:---|
-| $R_{align}$ | $\text{clamp}(y_{target} \cdot steer, -0.5, 0.5)$ | 목표 방향 조향 |
+| $R_{align}$ | $\text{clamp}(y_{target} \cdot steer, -1.0, 1.0)$ | 목표 방향 조향 |
 | $R_{recover}$ | $\text{clamp}(\|e_{prev}\| - \|e_{curr}\|, -0.2, 0.2)$ | 오차 감소 |
-| $R_{proj}$ | $\text{clamp}(v_x \cdot t_x + v_y \cdot t_y, -0.2, 0.5)$ | 경로 방향 속도 |
+| $R_{proj}$ | $\text{clamp}(v \cdot tangent / v_{target}, -0.2, 0.5)$ | 경로 방향 속도 |
 | $R_{arc}$ | $\text{clamp}(s_{curr} - s_{prev}, 0, 0.5)$ | 진행 거리 |
+| $P_{lat}$ | $\text{clamp}(\|nearest\_rel.y\|, 0, 2)^2$ | **절대 횡오차 (제곱)** |
 
-#### PPO Update
+#### 새로운 P_lat 설계
 
-**Advantage (GAE)**:
-$$
-\hat{A}_t = \sum_{l=0}^{\infty} (\gamma \lambda)^l \delta_{t+l}, \quad \delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)
-$$
+```python
+lat_err_clamped = clamp(|nearest_rel.y|, 0.0, 2.0)
+P_lat = lat_err_clamped ** 2  # 최대 4.0
+```
 
-**Policy Loss (Clipped)**:
-$$
-L^{CLIP} = -\mathbb{E}\left[\min\left(\frac{\pi_\theta(a|s)}{\pi_{\theta_{old}}(a|s)} \hat{A}, \text{clip}(\cdot, 1-\epsilon, 1+\epsilon) \hat{A}\right)\right]
-$$
-
-**Value Loss**:
-$$
-L^{VF} = \mathbb{E}\left[(V_\theta(s) - R_t)^2\right]
-$$
-
-**Total Loss**:
-$$
-L = L^{CLIP} + c_1 L^{VF} - c_2 H[\pi_\theta]
-$$
+- **제곱 형태**: 작은 오차 관대, 큰 오차 강력 페널티
+- **커리큘럼**: w_track × (0.5 → 1.0) 점진적 증가
 
 ---
 
@@ -366,9 +328,8 @@ $$
 | Learning Rate | 3e-4 |
 | Discount (γ) | 0.99 |
 | GAE Lambda (λ) | 0.95 |
-| Clip Epsilon (ε) | 0.2 |
-| Entropy Coef (c₂) | 0.01 |
-| Value Coef (c₁) | 0.5 |
+| Lookahead Distance | **3.0m (Arc-length)** |
+| w_track | **1.5 (with curriculum)** |
 
 ---
 
@@ -380,8 +341,8 @@ $$
 ├──────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
 │  ┌─────────┐    ┌──────────────────┐    ┌─────────────┐    ┌──────────┐     │
-│  │ World   │ →  │  Observation     │ →  │ Actor MLP   │ →  │ Action   │     │
-│  │ State   │    │  (18-dim)        │    │ (128,128)   │    │ (2-dim)  │     │
+│  │ World   │ →  │  Arc-Length      │ →  │ Actor MLP   │ →  │ Action   │     │
+│  │ State   │    │  Lookahead (3m)  │    │ (128,128)   │    │ (2-dim)  │     │
 │  └─────────┘    └──────────────────┘    └─────────────┘    └──────────┘     │
 │       ↑                                        ↓                 ↓          │
 │       │                                 ┌─────────────┐    ┌──────────┐     │
@@ -390,13 +351,14 @@ $$
 │       │                                 └─────────────┘    └──────────┘     │
 │       │                                        ↓                 ↓          │
 │       │                                 ┌─────────────────────────┐         │
-│       └─────────────────────────────────│      PPO Update         │         │
-│                                         │  (Policy + Value Loss)  │         │
+│       └─────────────────────────────────│  Reward (P_lat² added)  │         │
+│                                         │  PPO Update             │         │
 │                                         └─────────────────────────┘         │
 │                                                                              │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 ---
+
 
 ## 6.2 보상함수 
 

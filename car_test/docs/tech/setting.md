@@ -22,7 +22,9 @@
 
 ## 2. 경로 설정 (Blender)
 * bezier curve로 경로를 그린 뒤, path follow 클릭 후 bezier curve 선택
+
 <video controls src="../../res/0115/car.mp4" title="Title"></video>
+비디오 링크: https://drive.google.com/file/d/1iwlGOhXwCR_1VFKzuBZLOm6HuUWURWuv/view?usp=sharing 
 
 ## 3. 구동계 설정
 ![](../../res/0115/car2.png)

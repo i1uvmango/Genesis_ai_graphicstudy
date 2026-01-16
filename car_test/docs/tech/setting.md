@@ -4,7 +4,11 @@
   
 ![](../../res/0115/car.png)  
 
-* car rig
+
+
+* RBC addon rigged car 사용
+
+
 ![](../../res/0115/car3.png)
   
 * mesh + armature &rarr; car 형상 + 차량 제어 constraints 로 구성

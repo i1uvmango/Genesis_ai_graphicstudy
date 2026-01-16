@@ -246,20 +246,18 @@ Output: action ∈ [-1, 1]²
 #### 수식
 
 **Forward Pass**:
-$$
-\begin{align}
-h_1 &= \text{ReLU}(W_1 \cdot \text{obs} + b_1) \\
-h_2 &= \text{ReLU}(W_2 \cdot h_1 + b_2) \\
-\mu &= W_3 \cdot h_2 + b_3 \\
-\sigma &= \exp(\log\_std)
-\end{align}
-$$
+$$h_1 = \text{ReLU}(W_1 \cdot \text{obs} + b_1)$$
+
+$$h_2 = \text{ReLU}(W_2 \cdot h_1 + b_2)$$
+
+$$\mu = W_3 \cdot h_2 + b_3$$
+
+$$\sigma = \exp(\log\_std)$$
 
 **Action Sampling (Stochastic)**:
-$$
-a_{raw} \sim \mathcal{N}(\mu, \sigma^2) \\
-a = \tanh(a_{raw})
-$$
+$$a_{raw} \sim \mathcal{N}(\mu, \sigma^2)$$
+
+$$a = \tanh(a_{raw})$$
 
 **Log Probability (Squashed Gaussian)**:
 $$
@@ -302,14 +300,13 @@ $$
 #### Action → 물리 제어 변환
 
 **Throttle/Brake**:
-$$
-\begin{align}
-\tau_{engine} &= \max(a_0, 0) \cdot \tau_{max}^{engine} \\
-\tau_{brake} &= \max(-a_0, 0) \cdot \tau_{max}^{brake} \\
-\tau_{drive} &= \max(\tau_{engine} - \tau_{brake}, 0) \\
-\omega_{target} &= \frac{\tau_{drive} / \tau_{max}^{engine} \cdot v_{target}}{r_{wheel}}
-\end{align}
-$$
+$$\tau_{engine} = \max(a_0, 0) \cdot \tau_{max}^{engine}$$
+
+$$\tau_{brake} = \max(-a_0, 0) \cdot \tau_{max}^{brake}$$
+
+$$\tau_{drive} = \max(\tau_{engine} - \tau_{brake}, 0)$$
+
+$$\omega_{target} = \frac{\tau_{drive} / \tau_{max}^{engine} \cdot v_{target}}{r_{wheel}}$$
 
 **Steering**:
 $$

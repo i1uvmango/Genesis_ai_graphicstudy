@@ -53,17 +53,28 @@
 
 ### driving constraint
 ![](../../res/0115/driving.png)
+
+
 * traction control : 1 (interface 기준)
     *  바퀴 슬립을 감지해 구동 토크를 제한함으로써 접지력을 유지하는 제어 시스템
     * 마찰을 넘지 않게 토크를 관리하는 시스템
+
+
     ![](../../res/0115/traction.png)
 
 
 
 ## 4. 주행 경로 및 마찰 계수 설정 (Variable Friction)
 
+
+![](../../res/0115/ground.png)
+* 현재 주행 ground 설정 friction : 1 (interface 기준)
+
 ### 주행경로에 따로 마찰계수를 주는 방법
+
 ![](../../res/0115/road.png)
+
+
 ### 4.1) 도로를 구간별 Mesh로 분할
 - 예: `Road_Dry`, `Road_Wet`, `Road_Ice`
 - 방법:
@@ -77,6 +88,7 @@
 - Animated: x
 
 ### 4.3) 마찰 계수 설정
+
 
 
 1. mesh 클릭 후 우측 아래 physics properties 로 이동
@@ -98,7 +110,7 @@
 
 #### 하나의 terrain 에서 차량이 움직이는 경우
 ![](../../res/0115/road2.png)
-* 산악 지형: 연속적 &rarr; genesis 에서는 object 로 불러와서 terrain field 로 계산하는 것이 유리하다고 함
+* 산악 지형: 연속적인 마찰 계수 가정 &rarr; genesis 에서는 object 로 불러와서 terrain field 로 계산하는 것이 유리하다고 함
 
 
 
@@ -119,6 +131,29 @@
 아래 코드를 사용하여 데이터 추출
 데이터 추출 코드 링크: [data_extracter_blender](../../src/on_off_data_blender_data.py)
 
+### 뽑는 데이터 항목
+
+| 열 이름 | 의미 |
+|---------|------|
+| `frame` | 프레임 번호 |
+| `time` | 시간 (초) |
+| `g_pos_x/y/z` | Genesis 좌표계 위치 |
+| `g_qw/qx/qy/qz` | Genesis 좌표계 쿼터니언 (회전) |
+| `g_lin_vx/vy/vz` | Genesis 좌표계 선속도 |
+| `g_ang_vx/vy/vz` | Genesis 좌표계 각속도 |
+| `steer` | 조향각 (rad, 앞바퀴 2개 평균) |
+| `v_long` | 종방향 속도 (m/s, 차체 전방 성분) |
+| `spin_R` | 뒷바퀴 회전속도 (rad/s, 이동평균 적용) |
+| `throttle_raw` | 쓰로틀 원본 (spin × v_long 부호) |
+| `throttle_norm` | 정규화 쓰로틀 ([-1, 1]) |
+
+#### 좌표계 변환
+![](../../res/0115/blender.png)
+* blender 좌표계
+
+![](../../res/0115/genesis.png)
+* genesis 좌표계
+  * 좌표계가 다르기에 quarternion을 사용하여 좌표계 변환한 데이터를 추출
 
 ## 6 구현 코드 검증
 * train 코드 : [train_ppo](../../src/train_ppo.py)

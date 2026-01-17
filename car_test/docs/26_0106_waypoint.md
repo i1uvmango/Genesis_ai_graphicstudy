@@ -112,6 +112,26 @@
 * proximal policy optimization
     * 이전 정책과 너무 멀어지지 않도록 제한(clipping)하면서 정책을 점진적으로 개선하는 강화학습 알고리즘
 
+#### about 
+![ppo](../res/0106/ppo.png)
+
+
+```
+PPO(Proximal Policy Optimization)는 Actor–Critic 구조를 기반으로,
+정책(policy)이 한 번의 업데이트에서 과도하게 변하지 않도록 제한하면서
+Policy Gradient를 안정적으로 수행하는 강화학습 알고리즘이다.
+
+Actor network는 vector state를 입력으로 받아 action(또는 action 분포)을 출력하는 정책 네트워크이며,
+Critic network는 같은 state를 입력으로 받아 해당 상태의 기대 누적 보상 V(s)를 예측한다.
+critic 에서 얻은 V(s)를 critic이 예측한 다음 step 의 V(s+1) 에서 빼고, reward(s)를 더해서 advantage 계산
+PPO에서 계산한 Advantage가 Actor의 loss에 반영되어 다음 업데이트에서 더 좋은 행동을 낼 확률이 증가하도록 정책이 조정된다.
+```
+* rollout = 데이터 수집 단위
+* batch = gradient 계산 단위
+* batch가 작다고 rollout이 쪼개지는 게 아님
+* rollout은 policy update 전까지 고정
+
+---
 ### mlp 입력변수
 
 | 구분 | 사용되는 CSV 컬럼 변수 | 만들어지는 변수 | 의미 |

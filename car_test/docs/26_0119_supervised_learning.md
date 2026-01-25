@@ -1,4 +1,4 @@
-# 01/19 차량 동역학 학습 노트
+# Supervised Learning with UKMAC(Unicycle Kinematic Model for Acceleration and Curvature)
 
 ## 개요 및 이슈
 * **과적합(Overfitting):** 과적합된 데이터로 학습됨 -> 메타데이터를 활용해야 함.

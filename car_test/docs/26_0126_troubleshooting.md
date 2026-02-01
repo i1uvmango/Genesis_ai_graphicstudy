@@ -44,6 +44,9 @@ Troubleshooting 문서에 적으셨던 **데이터 증강(Augmentation)**이 바
     * **Look-ahead(예견 제어) 강화:** 현재 오차뿐만 아니라 미래 오차($la\_CTE$)를 피처로 넣어 '미리' 핸들을 꺾도록 설계.
     * **Damping 강화:** Stage 3의 목적 함수에서 $HE$(Heading Error) 페널티를 높여 방향 변화를 억제하거나, Genesis의 kv 게인을 조절하여 물리적 감쇠력을 확보.
 
+### 아직 해결하지 못함
+* 개선해 나가는 부분
+* fine tuning 이 필요
 ---
 
 ### 3. 목적 함수 내 가중치 불균형 (Weight Imbalance)

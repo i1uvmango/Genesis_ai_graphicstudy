@@ -285,7 +285,7 @@ loss = (cfg.throttle_weight * loss_throttle) + (cfg.steer_weight * loss_steer)
     * 오차(Error)를 줄이는 방향으로 계속 수정하므로 정확도가 높습니다.
     * 외부 방해에 강합니다 (예: 바람이 불어도 자동차가 차선을 유지함).
     * 구조가 복잡하고 설계 비용이 높습니다.
-> open loop 방식으로는 도저히 결과가 나오지 않았음
+> open loop 방식으로는 완벽한 경로 추정이 안되었음
 
 ## Closed Loop 방식으로 수정
 
@@ -295,7 +295,7 @@ loss = (cfg.throttle_weight * loss_throttle) + (cfg.steer_weight * loss_steer)
  * `Heading Error` : 차량의 회전 각도와 경로의 회전 각도의 차이
 
 
-> MLP가 매 step `CTE`, `Heading Error`를 입력으로 받아 다음 step 의 `$T^*`, `$S^*$`를 출력
+> MLP가 매 step `CTE`, `Heading Error`를 입력으로 받아 다음 step 의 `$T^*$`, `$S^*$`를 출력
 
 ### Stage 3 Ground Truth 도 CTE , HE 를 계산하도록 해야함
 #### 수정된 Ground Truth Output(stage3) 
@@ -309,9 +309,12 @@ loss = (cfg.throttle_weight * loss_throttle) + (cfg.steer_weight * loss_steer)
 | **성적 (Score)** | $loss$ | 이 정답이 얼마나 믿을만한가? (필터링용) | 데이터 정제용 |
 
 #### 수정된 GT Objective Function
-$$\mathcal{L} = \underbrace{(a_{gen} - a^*)^2 + 5(k_{gen} - k^*)^2}_{\text{Motion Matching}} + \underbrace{\beta_1 \cdot CTE^2 + \beta_2 \cdot HE^2}_{\text{Path Alignment}}$$
+$$\mathcal{L} = \underbrace{(a_{gen} - a^*)^2 + 5(k_{gen} - k^*)^2}_{\text{Motion Matching}} + \underbrace{\beta_1 \cdot CTE^2 + \beta_2 \cdot HE^2}_{\text{Path Alignment}} + \underbrace{\beta_3 la\_CTE^2 + \beta_4 la\_HE^2}_{\text{Look-ahead Penalty (미래 대비)}}$$
+
 
 * `CTE` , `HE` 에 대해 penalty 항을 부여하여 closed loop로 재정의된 목적함수 설계
+* `lookahead` step 만큼 뒤에서 벌어질 오차($la\_CTE, la\_HE$)에 대해서도 penalty 를 부여하여 미래 오차에 대한 페널티를 추가
+    * 운전자가 바로 앞 범퍼만 보고 운전하는 게 아니라 저 멀리 커브길을 미리 보고 핸들을 돌릴 준비를 하는 것과 같습니다.
 
 
 
@@ -373,6 +376,9 @@ $$Output (2D) = [T^*, S^*]$$
 
 $$(T, S)_{final} = \text{MLP}(v, \omega, t_b, s_b, \mathbf{CTE}, \mathbf{HE}, \dots)$$
 
+![](../res/0119/inf.png)
+* GT 값과 비슷하게 mlp 출력값을 뽑아냄
+
 
 
 | 구분 | Stage 4 (Training) | Stage 5 (Inference/Testing) |
@@ -382,4 +388,51 @@ $$(T, S)_{final} = \text{MLP}(v, \omega, t_b, s_b, \mathbf{CTE}, \mathbf{HE}, \d
 | **정답(Target)** | 있음 ($T_{gt}, S_{gt}$) | 없음 (모델이 직접 생성) |
 | **목표** | 오차와 정답 사이의 패턴 학습 | 성공적인 주행 및 경로 완주 |
 
+### test 결과
+![](../res/0119/run.gif) 
+
+
+
+
 ### 주행 비교
+
+### Parameter Fine Tuning 시도
+> Stage 3 Ground Truth 에서 Objective Function 의 Weight 값을 변경하면서 학습
+
+|`accel_weight`| `steer_weight` | `beta_cte` | `beta_he` | `beta_la_cte` | `beta_la_he` |비고| Result |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 1 | 25 | 0 | 0 | 0 | 0 | 사실상 open loop | ![](../res/0119/track.png)|
+| 1 | 10.0 | 1.5 | 3.5 | 1.5 | 1.0 | 평균 2m/s(5~6m/s 목표) | ![](../res/0119/test_4.png) |
+| 1 | 10 | 1.5 | 2.5 | 0.8 | 0.4 | oscillation  | ![](../res/0119/test_3.png) |
+| 1 | 5 | 1.0 | 4.0 | 2.0 | 1.5 | 개선된 oscillation  | ![](../res/0119/test_2.png) |
+| 1 | 25 |  1.0 | 1.0 | 1.0 | 1.0 | oscillation 심함 | ![](../res/0119/closed.png) |
+| 1 | 25 | 1.0 | 4.0 | 2.0 | 1.5 | oscillation 심해짐 | ![](../res/0119/train_1.png) |
+
+
+
+### 계속 시도해봤지만 closed loop가 더 낮은 성능을 보였음
+* 설계에 문제가 있었다고 판단
+
+### 문제 분석
+* 기존 Stage 3 최적화 단계에서 고정된 Lookahead Index와 CTE(Cross Track Error) 기반 페널티를 적용 (`cte`, `he`,`la_cte`, `la_he`)
+* 이는 `직선 도로에서는 유효`하나, `곡률`이 존재하는 도로에서는 `심각한 논리적 오류`
+
+
+## Stage 3 Objective Function 수정
+### Pure Pursuit 알고리즘에 영감 받아서 위치 기반 페널티를 적용
+* Pure Pursuit(순수 경로 추종) 처럼 차량의 **진행 방향**이나 **접선**에 **무관**하게, 오직 ***경로** 를 따라가도록 penalty 를 부여
+
+#### 기대효과
+1. 진동(Oscillation) 제거
+2. 자연스러운 조향 제어 &rarr; 곡선 구간에서 부드러운 주행
+3. Closed loop 성능 개선을 통한 sim2sim calibration 성능 향상
+
+
+
+$$L_{groundtruth}(T^*, S^*) = \underbrace{w_a(a_{gen} - a^*)^2 + w_k(k_{gen} - k^*)^2}_{\text{Motion Matching}} + \underbrace{w_{dist} \cdot \left\| \mathbf{P}_{car} - \mathbf{P}_{la} \right\|^2}_{\text{Pursuit}}$$
+
+$$ a_{blender}^* = a_{blender} + \text{Residual}_{Env}(a) + \text{Residual}_{Dyn}(a) $$
+
+$$ k_{blender}^* = k_{blender} + \text{Residual}_{Env}(k) + \text{Residual}_{Dyn}(k) $$
+* $\left\| \mathbf{P}_{car} - \mathbf{P}_{la} \right\|^2$는 차량의 차기 위치와 전방 목표점 사이의 유클리드 거리 제곱
+

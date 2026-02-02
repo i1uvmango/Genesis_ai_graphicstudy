@@ -20,10 +20,14 @@
 * solver가 공유하는 state 이므로, (a,k) 기반으로 두 솔버의 입력 state를 동기화해야함
 ---
 
+
+
 ## Env Sync (Stage 1)
+* Residual Learning (MLP를 통해 환경적 요소를 보정)
 
 > 목적: 시뮬레이션의 기본 물리법칙만으로는 학습되지 않는 `마찰력`, `공기저항`, `중력 방향`, `타이어 슬립` 등 환경적 요소를 Residual Learning 으로 시뮬레이션의 정확도를 높인다.
 
+#### env state 는 차량 state를 통해 만들어짐(로보틱스 표준)
 * 쿼터니언 &rarr; 중력 방향 
 * v_long 속도 &rarr; 공기저항 (속도의 제곱에 비례)
 * v_long 속도 + 이전 step 속도 &rarr; 질량과 회전관성
@@ -59,12 +63,13 @@
 
 ---
 
-## Residual Dynamics (Stage 2)
-
+## Dynamics Sync (Stage 2)
+* residual dynamics
+> stage1 을 적용해본 뒤, 여전히 남아 있는 차량의 움직임 잔차를 학습
 
 Stage 1이 "환경(경사로, 중력)"을 배웠다면, Stage 2는 **"순수한 차량의 고유한 움직임(핸들을 꺾었을 때 얼마나 확 도는지, 타이어가 얼마나 미끄러지는지)"**을 학습하여 시뮬레이션을 완성하는 단계입니다.
 
-> Bicycle Kinematics 를 사용하여 stage1 에서 배운 환경을 고려한 차량의 움직임을 학습
+> CSV 와 Genesis Solver 의 기본 수식을 비교
 
 ```
 Input: "지금 속도는 10m/s고, 핸들은 0.5만큼 꺾었어. 차는 2도 정도 기울어져 있고..."
@@ -73,64 +78,41 @@ Baseline: "이론상으론 횡방향 속도가 1.2가 나와야 해."
 
 Env Sync: "거기에 환경 저항을 고려하면 1.15가 되겠네."
 
-Target (정답): 그런데 실제 데이터(drive_8.csv)를 보니 1.0이 찍혀 있네?
-
-Stage 2 MLP의 임무: "아하! -0.15만큼의 차이가 생기는구나. 이 -0.15가 바로 우리 차(URDF)의 고유한 동역학적 특성이네! 이걸 외워야지."
-
-```
-* URDF 자체의 슬립 , 속도 등의 동역학적 특성을 Residual Learning 으로 학습
-
-
-### 모델: ResidualDynamicsMLP
-* **입력(14개 피처) $\rightarrow$ 출력(횡방향 속도 잔차, 회전각속도 잔차)**
-* 이 모델은 **"핸들을 꺾었을 때 차가 실제로 얼마나 반응하는지"**에 대한 정밀한 물리 엔진 역할을 합니다.
-* 가장 바깥 껍질인 **"마찰(Baseline)"**을 벗겨내고, 두 번째 껍질인 **"환경(Stage 1)"**을 벗겨낸 뒤, 가장 안쪽에 남은 **"차량의 진짜 성능(Dynamics)"**만을 학습하여 저장합니다.
-
-### 구조 (Architecture)
-```python
-nn.Linear(14, 128), nn.ReLU(),
-nn.Linear(128, 128), nn.ReLU(),
-nn.Linear(128, 64), nn.ReLU(),
-nn.Linear(64, 2)
-```
-
-### 입력/출력
+nn.Linear(14, 32), nn.ReLU(),
+nn.Linear(32, 16), nn.ReLU(),
+nn.Linear(16, 2)
 
 ### 1. 입력 변수 (Input Features - 11차원)
-모델이 "지금 상황이 이렇구나!"라고 판단하는 근거입니다. 크게 세 그룹으로 나뉩니다.
+모델이 "지금 상황이 이렇구나!"라고 판단하는 근거입니다. 크게 4가지 그룹으로 나뉩니다.
 
-#### 1. 현재 운동 상태 (Current State)
-차량이 현재 어느 정도의 속도로 어떻게 움직이고 있는지를 나타냅니다.
-* $v$ (Longitudinal Velocity): 차량의 전진 속도. 타이어 마찰력과 공기 저항을 결정하는 가장 핵심 변수입니다.
-* $v_{lat}$ (Lateral Velocity): 옆으로 미끄러지는 속도. 이 값이 클수록 차가 통제력을 잃기 직전임을 의미합니다.
-* $yaw\_rate$ (Yaw Rate): 차체가 수직축을 중심으로 회전하는 속도.
+| 분류 | 변수명 | 설명 | 물리적 의미 및 역할 |
+| :--- | :--- | :--- | :--- |
+| **운동 상태** | $v$ | Longitudinal Velocity | 전진 속도 (마찰력 및 저항 결정의 핵심) |
+| | $v_{lat}$ | Lateral Velocity | 측방 속도 (통제력 상실 여부 판단) |
+| | $yaw\_rate$ | Yaw Rate | 수직축 회전 속도 |
+| **운전자 의도** | $a$ | Acceleration | 가속도 명령 (엔진 토크 대변) |
+| | $k$ | Curvature | 곡률 명령 (스티어링 조향각 대변) |
+| **물리 컨텍스트** | $\beta$ | Side Slip Angle | 미끄럼각 (차체 방향과 이동 방향의 차이) |
+| | $pitch$ | Pitch Angle | 차량의 앞뒤 기울기 (가감속 시 하중 이동) |
+| | $roll$ | Roll Angle | 차량의 좌우 기울기 (코너링 시 하중 이동) |
+| | $v^2$ | Velocity Squared | 속도의 제곱 (비선형 공기 저항 및 관성 힌트) |
+| **시계열 데이터** | $prev\_v_{lat}$ | Previous Lateral Vel | 직전 타임스텝의 측방 속도 (관성 효과 반영) |
+| | $prev\_yaw$ | Previous Yaw Rate | 직전 타임스텝의 요레이트 (관성 효과 반영) |
 
-#### 2. 운전자 명령 및 의도 (Control Commands)
-UKMAC의 $a$와 $k$가 여기서 '힌트' 역할을 합니다.
-* $a$ (Acceleration): 가속도 명령. 엔진이 휠에 전달하는 힘의 크기를 대변합니다.
-* $k$ (Curvature): 곡률 명령. 스티어링 휠을 얼마나 꺾었는지를 나타냅니다.
 
-#### 3. 물리적 환경 및 자세 (Physical Context)
-차량의 자세가 접지력에 주는 영향을 설명합니다.
-* $\beta$ (Side Slip Angle): 차체가 바라보는 방향과 실제 이동 방향 사이의 각도. ($\arctan2(v_{lat}, v)$)
-* $pitch$ / $roll$: 차체가 앞뒤/좌우로 기울어진 정도. 하중 이동(Load Transfer)을 파악하여 타이어 접지력을 추론합니다.
-* $v^2$ (Velocity Squared): 속도의 제곱. 고속 주행 시 급격히 커지는 공기 저항과 동적 안정성을 위한 비선형 힌트입니다.
-* $prev\_v_{lat}$ / $prev\_yaw$: 직전 타임스텝의 상태. 차량의 관성(Inertia)이 현재 거동에 주는 영향을 학습하기 위한 시계열 데이터입니다.
 
 ### 2. 출력 변수 (Output Variables - 2차원)
 모델이 "수학 공식(Bicycle)이랑 실제 제네시스(URDF)는 이만큼 다르네!"라고 답하는 결과값입니다.
 
-#### 1. $\Delta v_{lat}$ (Lateral Velocity Residual)
-* **의미:** "이론상으론 옆으로 안 밀려야 하는데(Kinematic), 실제 제네시스에서는 타이어가 미끄러져서 이만큼 옆으로 더 밀리네?"를 나타내는 보정값입니다.
-* **역할:** 타이어의 코너링 포스(Cornering Force) 한계를 모델링합니다.
-
-#### 2. $\Delta \omega$ (Yaw Rate Residual)
-* **의미:** "이론상으론 10도 돌아야 하는데, 실제 차는 무게 중심과 관성 때문에 9도만 돌거나(Understeer), 뒤가 털려서 11도 도네(Oversteer)?"를 나타내는 보정값입니다.
-* **역할:** 차량의 회전 관성(Moment of Inertia) 특성을 모델링합니다.
+| 변수명 | 이름 | 물리적 의미 | 모델의 핵심 역할 |
+| :--- | :--- | :--- | :--- |
+| $\Delta v_{lat}$ | Lateral Velocity Residual | 이론적 측방 속도와 실제 데이터 사이의 차이 | 타이어의 비선형적 코너링 포스(Slip) 모델링 |
+| $\Delta \omega$ | Yaw Rate Residual | 이론적 회전량과 실제 회전량 사이의 차이 | 차량의 회전 관성 및 언더/오버스티어 특성 보정 |
 
 
 ### 동일한 변수들을 사용하는데 Stage1 과 어떻게 독립인지?
-* Stage 2를 학습할 때 Stage 1 모델은 **'수정 불가능한 상식'**이 됩니다. 즉, Stage 2 모델이 아무리 노력해도 Stage 1이 담당하는 영역(중력, 공기 저항)을 뺏어오거나 대신 학습할 수 없도록 설계
+* Stage 2를 학습할 때 Stage 1 모델은 **Freeze** 됩니다. 즉, Stage 1이 담당하는 영역(중력, 공기 저항)을 뺏어오거나 대신 학습할 수 없도록 설계
+
 
 * $Actual - (Kinematic + Stage1)$ 로 학습
 * Stage 1(env sync)가 설명하지 못한 나머지 에러에 집중

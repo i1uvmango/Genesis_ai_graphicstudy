@@ -381,14 +381,92 @@ $$(T, S)_{final} = \text{MLP}(v, \omega, t_b, s_b, \mathbf{CTE}, \mathbf{HE}, \d
 ### Parameter Fine Tuning 시도
 > Stage 3 Ground Truth 에서 Objective Function 의 Weight 값을 변경하면서 학습
 
-|`accel_weight`| `steer_weight` | `beta_cte` | `beta_he` | `beta_la_cte` | `beta_la_he` |비고| Result |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| 1 | 25 | 0 | 0 | 0 | 0 | 사실상 open loop | ![](../res/0119/track.png)|
-| 1 | 10.0 | 1.5 | 3.5 | 1.5 | 1.0 | 평균 2m/s(5~6m/s 목표) | ![](../res/0119/test_4.png) |
-| 1 | 10 | 1.5 | 2.5 | 0.8 | 0.4 | oscillation  | ![](../res/0119/test_3.png) |
-| 1 | 5 | 1.0 | 4.0 | 2.0 | 1.5 | 개선된 oscillation  | ![](../res/0119/test_2.png) |
-| 1 | 25 |  1.0 | 1.0 | 1.0 | 1.0 | oscillation 심함 | ![](../res/0119/closed.png) |
-| 1 | 25 | 1.0 | 4.0 | 2.0 | 1.5 | oscillation 심해짐 | ![](../res/0119/train_1.png) |
+<table>
+<colgroup>
+<col width="5%" />
+<col width="5%" />
+<col width="5%" />
+<col width="5%" />
+<col width="5%" />
+<col width="5%" />
+<col width="20%" />
+<col width="50%" />
+</colgroup>
+<thead>
+<tr>
+<th><code>accel_w</code></th>
+<th><code>steer_w</code></th>
+<th><code>cte</code></th>
+<th><code>he</code></th>
+<th><code>la_cte</code></th>
+<th><code>la_he</code></th>
+<th>비고</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">1</td>
+<td align="center">25</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">사실상 open loop</td>
+<td align="center"><img src="../res/0119/track.png" width="100%"></td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">10.0</td>
+<td align="center">1.5</td>
+<td align="center">3.5</td>
+<td align="center">1.5</td>
+<td align="center">1.0</td>
+<td align="center">평균 2m/s(5~6m/s 목표)</td>
+<td align="center"><img src="../res/0119/test_4.png" width="100%"></td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">10</td>
+<td align="center">1.5</td>
+<td align="center">2.5</td>
+<td align="center">0.8</td>
+<td align="center">0.4</td>
+<td align="center">oscillation</td>
+<td align="center"><img src="../res/0119/test_3.png" width="100%"></td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">5</td>
+<td align="center">1.0</td>
+<td align="center">4.0</td>
+<td align="center">2.0</td>
+<td align="center">1.5</td>
+<td align="center">개선된 oscillation</td>
+<td align="center"><img src="../res/0119/test_2.png" width="100%"></td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">25</td>
+<td align="center">1.0</td>
+<td align="center">1.0</td>
+<td align="center">1.0</td>
+<td align="center">1.0</td>
+<td align="center">oscillation 심함</td>
+<td align="center"><img src="../res/0119/closed.png" width="100%"></td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">25</td>
+<td align="center">1.0</td>
+<td align="center">4.0</td>
+<td align="center">2.0</td>
+<td align="center">1.5</td>
+<td align="center">oscillation 심해짐</td>
+<td align="center"><img src="../res/0119/train_1.png" width="100%"></td>
+</tr>
+</tbody>
+</table>
 
 
 

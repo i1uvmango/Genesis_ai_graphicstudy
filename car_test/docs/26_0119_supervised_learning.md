@@ -27,7 +27,7 @@
 
 > 목적: 시뮬레이션의 기본 물리법칙만으로는 학습되지 않는 `마찰력`, `공기저항`, `중력 방향`, `타이어 슬립` 등 환경적 요소를 Residual Learning 으로 시뮬레이션의 정확도를 높인다.
 
-#### env state 는 차량 state를 통해 만들어짐(로보틱스 표준)
+#### env state 는 차량 state를 통해 만들어짐(로보틱스)
 * 쿼터니언 &rarr; 중력 방향 
 * v_long 속도 &rarr; 공기저항 (속도의 제곱에 비례)
 * v_long 속도 + 이전 step 속도 &rarr; 질량과 회전관성
@@ -81,7 +81,7 @@ Env Sync: "거기에 환경 저항을 고려하면 1.15가 되겠네."
 nn.Linear(14, 32), nn.ReLU(),
 nn.Linear(32, 16), nn.ReLU(),
 nn.Linear(16, 2)
-
+```
 ### 1. 입력 변수 (Input Features - 11차원)
 모델이 "지금 상황이 이렇구나!"라고 판단하는 근거입니다. 크게 4가지 그룹으로 나뉩니다.
 
@@ -158,15 +158,15 @@ Inverse Dynamics MLP를 학습시키기 위해 Genesis 세계에 맞는 데이�
 
 
   
-$$(T_{gt}, S_{gt}) = \arg\min_{T, S} \left[ \left( a_{genesis}(T, S) - a_{blender}^* \right)^2 + 5 \cdot \left( k_{genesis}(T, S) - k_{blender}^* \right)^2 \right]$$
+$$(T_{gt}, S_{gt}) = \arg\min_{T, S} \left[ \left( a_{genesis}(T, S) - a_{blender}^{*} \right)^2 + 5 \cdot \left( k_{genesis}(T, S) - k_{blender}^{*} \right)^2 \right]$$
 
 
 (단 a*,k* 은 stage1,2 에서 학습된 보정치)
 
 
-$$ a_{blender}^* = a_{blender} + \text{Residual}_{Env}(a) + \text{Residual}_{Dyn}(a) $$
+$$ a_{blender}^{*} = a_{blender} + \text{Residual}_{Env}(a) + \text{Residual}_{Dyn}(a) $$
 
-$$ k_{blender}^* = k_{blender} + \text{Residual}_{Env}(k) + \text{Residual}_{Dyn}(k) $$
+$$ k_{blender}^{*} = k_{blender} + \text{Residual}_{Env}(k) + \text{Residual}_{Dyn}(k) $$
 
 * 경로 추종이 더 중요하기 때문에 1:5(weight)로 설정
 
@@ -291,7 +291,7 @@ loss = (cfg.throttle_weight * loss_throttle) + (cfg.steer_weight * loss_steer)
 | **성적 (Score)** | $loss$ | 이 정답이 얼마나 믿을만한가? (필터링용) | 데이터 정제용 |
 
 #### 수정된 GT Objective Function
-$$\mathcal{L} = \underbrace{(a_{gen} - a^*)^2 + 5(k_{gen} - k^*)^2}_{\text{Motion Matching}} + \underbrace{\beta_1 \cdot CTE^2 + \beta_2 \cdot HE^2}_{\text{Path Alignment}} + \underbrace{\beta_3 la\_CTE^2 + \beta_4 la\_HE^2}_{\text{Look-ahead Penalty (미래 대비)}}$$
+$$\mathcal{L} = \underbrace{(a_{gen} - a^{*})^2 + 5(k_{gen} - k^{*})^2}_{\text{Motion Matching}} + \underbrace{\beta_1 \cdot \text{CTE}^2 + \beta_2 \cdot \text{HE}^2}_{\text{Path Alignment}} + \underbrace{\beta_3 \text{la\_CTE}^2 + \beta_4 \text{la\_HE}^2}_{\text{Look-ahead Penalty (미래 대비)}}$$
 
 
 * `CTE` , `HE` 에 대해 penalty 항을 부여하여 closed loop로 재정의된 목적함수 설계
@@ -301,7 +301,7 @@ $$\mathcal{L} = \underbrace{(a_{gen} - a^*)^2 + 5(k_{gen} - k^*)^2}_{\text{Motio
 
 
 ### 수정된 Input Features (8 dim)
-$$Input = [v_{long}, \omega, T^*, S^*, CTE, HE, la\_CTE, la\_HE]$$
+$$\text{Input} = [v_{long}, \omega, T^{*}, S^{*}, \text{CTE}, \text{HE}, \text{la\_CTE}, \text{la\_HE}]$$
 
 * State : [v_long, \omega]
 * Action : [T^*, S^*]
@@ -310,7 +310,7 @@ $$Input = [v_{long}, \omega, T^*, S^*, CTE, HE, la\_CTE, la\_HE]$$
 
 ### MLP Architecture
 #### Input
-$$Input (8D) = [v_{long}, \omega, T^*, S^*, CTE, HE, la\_CTE, la\_HE]$$
+$$\text{Input} (8D) = [v_{long}, \omega, T^{*}, S^{*}, \text{CTE}, \text{HE}, \text{la\_CTE}, \text{la\_HE}]$$
 * State : [v_long, \omega]
 * Action : [T^*, S^*]
 * Feedback : [CTE, HE]
@@ -323,11 +323,11 @@ $$Input (8D) = [v_{long}, \omega, T^*, S^*, CTE, HE, la\_CTE, la\_HE]$$
 $$ H_1 = \text{Dropout}(\text{ReLU}(W_1 X_{in} + b_1), p=0.2) $$
 $$ H_2 = \text{Dropout}(\text{ReLU}(W_2 H_1 + b_2), p=0.2) $$
 $$ H_3 = \text{Dropout}(\text{ReLU}(W_3 H_2 + b_3), p=0.2) $$
-$$ Y_{out} = \text{Tanh}(W_4 H_3 + b_4) = [T^*, S^*] $$
+$$ Y_{out} = \text{Tanh}(W_4 H_3 + b_4) = [T^{*}, S^{*}] $$
 
 
 #### Output
-$$Output (2D) = [T^*, S^*]$$
+$$\text{Output} (2D) = [T^{*}, S^{*}]$$
 * updated (T*,S*)
 
 
@@ -489,7 +489,7 @@ $$(T, S)_{final} = \text{MLP}(v, \omega, t_b, s_b, \mathbf{CTE}, \mathbf{HE}, \d
 
 
 
-$$L_{groundtruth}(T^*, S^*) = \underbrace{w_a(a_{gen} - a^*)^2 + w_k(k_{gen} - k^*)^2}_{\text{Motion Matching}} + \underbrace{w_{dist} \cdot \left\| \mathbf{P}_{car} - \mathbf{P}_{la} \right\|^2}_{\text{Pursuit}}$$
+$$L_{\text{groundtruth}}(T^{*}, S^{*}) = \underbrace{w_a(a_{gen} - a^{*})^2 + w_k(k_{gen} - k^{*})^2}_{\text{Motion Matching}} + \underbrace{w_{dist} \cdot \left\| \mathbf{P}_{car} - \mathbf{P}_{la} \right\|^2}_{\text{Pursuit}}$$
 
 $$ a_{blender}^* = a_{blender} + \text{Residual}_{Env}(a) + \text{Residual}_{Dyn}(a) $$
 

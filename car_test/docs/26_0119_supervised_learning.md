@@ -106,7 +106,7 @@ nn.Linear(16, 2)
 
 | 변수명 | 이름 | 물리적 의미 | 모델의 핵심 역할 |
 | :--- | :--- | :--- | :--- |
-| $\Delta v_{lat}$ | Lateral Velocity Residual | 이론적 측방 속도와 실제 데이터 사이의 차이 | 타이어의 비선형적 코너링 포스(Slip) 모델링 |
+| $\Delta v_{\text{lat}}$ | Lateral Velocity Residual | 이론적 측방 속도와 실제 데이터 사이의 차이 | 타이어의 비선형적 코너링 포스(Slip) 모델링 |
 | $\Delta \omega$ | Yaw Rate Residual | 이론적 회전량과 실제 회전량 사이의 차이 | 차량의 회전 관성 및 언더/오버스티어 특성 보정 |
 
 
@@ -232,7 +232,7 @@ loss = (cfg.throttle_weight * loss_throttle) + (cfg.steer_weight * loss_steer)
 
 | 분류 | 변수명 | 설명 |
 | :--- | :--- | :--- |
-| State | $v_{long}$, $\omega_{yaw}$ | 현재 차량의 속도와 회전 빠르기 |
+| State | $v_{\text{long}}$, $\omega_{\text{yaw}}$ | 현재 차량의 속도와 회전 빠르기 |
 | Action | $T_{gt}$, $S_{gt}$ | Genesis에 맞게 변환된 Blender 제어량 (Ground Truth) |
 
 ### Hidden Layer
@@ -291,7 +291,7 @@ loss = (cfg.throttle_weight * loss_throttle) + (cfg.steer_weight * loss_steer)
 | **성적 (Score)** | $loss$ | 이 정답이 얼마나 믿을만한가? (필터링용) | 데이터 정제용 |
 
 #### 수정된 GT Objective Function
-$$\mathcal{L} = \underbrace{(a_{gen} - a^{*})^2 + 5(k_{gen} - k^{*})^2}_{\text{Motion Matching}} + \underbrace{\beta_1 \cdot \text{CTE}^2 + \beta_2 \cdot \text{HE}^2}_{\text{Path Alignment}} + \underbrace{\beta_3 \text{la\_CTE}^2 + \beta_4 \text{la\_HE}^2}_{\text{Look-ahead Penalty (미래 대비)}}$$
+$$\mathcal{L} = \underbrace{(a_{gen} - a^{*})^2 + 5(k_{gen} - k^{*})^2}_{\text{Motion Matching}} + \underbrace{\beta_1 \cdot \text{CTE}^2 + \beta_2 \cdot \text{HE}^2}_{\text{Path Alignment}} + \underbrace{\beta_3 \text{la\_CTE}^2 + \beta_4 \text{la\_HE}^2}_{\text{Look-ahead Penalty}}$$
 
 
 * `CTE` , `HE` 에 대해 penalty 항을 부여하여 closed loop로 재정의된 목적함수 설계
@@ -301,7 +301,7 @@ $$\mathcal{L} = \underbrace{(a_{gen} - a^{*})^2 + 5(k_{gen} - k^{*})^2}_{\text{M
 
 
 ### 수정된 Input Features (8 dim)
-$$\text{Input} = [v_{long}, \omega, T^{*}, S^{*}, \text{CTE}, \text{HE}, \text{la\_CTE}, \text{la\_HE}]$$
+$$\text{Input} = [v_{\text{long}}, \omega, T^{*}, S^{*}, \text{CTE}, \text{HE}, \text{la\_CTE}, \text{la\_HE}]$$
 
 * State : [v_long, \omega]
 * Action : [T^*, S^*]
@@ -310,7 +310,7 @@ $$\text{Input} = [v_{long}, \omega, T^{*}, S^{*}, \text{CTE}, \text{HE}, \text{l
 
 ### MLP Architecture
 #### Input
-$$\text{Input} (8D) = [v_{long}, \omega, T^{*}, S^{*}, \text{CTE}, \text{HE}, \text{la\_CTE}, \text{la\_HE}]$$
+$$\text{Input} (8D) = [v_{\text{long}}, \omega, T^{*}, S^{*}, \text{CTE}, \text{HE}, \text{la\_CTE}, \text{la\_HE}]$$
 * State : [v_long, \omega]
 * Action : [T^*, S^*]
 * Feedback : [CTE, HE]
@@ -491,8 +491,8 @@ $$(T, S)_{final} = \text{MLP}(v, \omega, t_b, s_b, \mathbf{CTE}, \mathbf{HE}, \d
 
 $$L_{\text{groundtruth}}(T^{*}, S^{*}) = \underbrace{w_a(a_{gen} - a^{*})^2 + w_k(k_{gen} - k^{*})^2}_{\text{Motion Matching}} + \underbrace{w_{dist} \cdot \left\| \mathbf{P}_{car} - \mathbf{P}_{la} \right\|^2}_{\text{Pursuit}}$$
 
-$$ a_{blender}^* = a_{blender} + \text{Residual}_{Env}(a) + \text{Residual}_{Dyn}(a) $$
+$$ a_{blender}^{*} = a_{blender} + \text{Residual}_{Env}(a) + \text{Residual}_{Dyn}(a) $$
 
-$$ k_{blender}^* = k_{blender} + \text{Residual}_{Env}(k) + \text{Residual}_{Dyn}(k) $$
+$$ k_{blender}^{*} = k_{blender} + \text{Residual}_{Env}(k) + \text{Residual}_{Dyn}(k) $$
 * $\left\| \mathbf{P}_{car} - \mathbf{P}_{la} \right\|^2$는 차량의 차기 위치와 전방 목표점 사이의 유클리드 거리 제곱
 

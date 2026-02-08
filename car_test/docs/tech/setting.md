@@ -149,10 +149,12 @@
 
 #### 좌표계 변환
 ![](../../res/0115/blender.png)
-* blender 좌표계
+* blender 좌표계(+z up, +y forward, +x right)
 
-![](../../res/0115/genesis.png)
-* genesis 좌표계
+---
+
+![](../../res/0115/gencord.png)
+* genesis 좌표계(+z up, +x forward, +y left)
   * 좌표계가 다르기에 quarternion을 사용하여 좌표계 변환한 데이터를 추출
 
 ## 6 구현 코드 검증

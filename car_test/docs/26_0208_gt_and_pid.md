@@ -82,5 +82,5 @@ $$S_{target} = S_{original} + (0.3 \cdot \Delta CTE) + (0.2 \cdot \Delta HE)$$
 |---| --- | --- | --- |
 | cpu| ![](../res/0208/cpu_open.png) | open-loop | scipy cpu 알고리즘으로 찾은 gt, 미세하게 방향은 틀려도 모양 나옴 |
 | gpu| ![](../res/0208/gpu_open2.png) | open-loop | gpu, 16k개 env 에서 gt, 너무 오차가 큼 |
-| cpu | ![](../res/cpu_closed.png) | closed-loop | 위에서 찾은 gt를 통해서 cte,he 피드백 오차 수정 가능하도록 학습,  cpu_gt 값이 정확하지만 누적오차때문에 벗어났다고 가정, gt 학습한 체크포인트로 추론 |
+| cpu | ![](../res/0208/cpu_closed.png) | closed-loop | 위에서 찾은 gt를 통해서 cte,he 피드백 오차 수정 가능하도록 학습,  cpu_gt 값이 정확하지만 누적오차때문에 벗어났다고 가정, gt 학습한 체크포인트로 추론 |
 | gpu | x | closed-loop | gpu_gt 가 정확하다 라고 가정 후 학습 후 체크포인트로 추론(그나마 open 오차가 적었던 cpu도 안돼서 실행해보지 않음)|

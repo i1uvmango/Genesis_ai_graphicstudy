@@ -71,10 +71,10 @@ $$S_{target} = S_{original} + (0.3 \cdot \Delta CTE) + (0.2 \cdot \Delta HE)$$
 
 ### checkpoint 주행 테스트
 
-| 경로 | 설명 |
-| - | - |
-| ![](../res/0208/pid_mlp_test.png) | checkpoint 를 통해 **overfitting** 된 경로 주행 |  
-| ![](../res/0208/pid_mlp_test2.png) | checkpoint 를 통해 **처음보는 경로** 주행 |
+| 경로 | 설명 | 영상 |
+| - | - | - |
+| ![](../res/0208/pid_mlp_test.png) | checkpoint 를 통해 **overfitting** 된 경로 주행 |  ![](../res/0208/overfit_drive.gif)|
+| ![](../res/0208/pid_mlp_test2.png) | checkpoint 를 통해 **처음보는 경로** 주행 | ![](../res/0208/8_drive.gif)|
 
 
 

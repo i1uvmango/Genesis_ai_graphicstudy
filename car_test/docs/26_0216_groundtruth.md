@@ -113,4 +113,7 @@ bicycle model의 전방속도 이므로(`차량의 속도`) 이므로 `v_local`�
 | ![](../res/0216/stage2_1.png) | ![](../res/0216/stage2_2.png) |
 
 
-<video controls src="../res/0216/gt.mp4" title="Title"></video>
+ [golden t,s](https://github.com/user-attachments/assets/f047dc22-03d6-44a7-9f19-f8c835041839)
+
+
+ 

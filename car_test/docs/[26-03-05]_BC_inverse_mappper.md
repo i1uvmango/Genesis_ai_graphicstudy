@@ -11,7 +11,9 @@
 
 
 ### Input Features (26 Dim)
+
 ![](../res/0222/input.png)
+
 $$\mathbf{X} = [\underbrace{v_{long\_bl}, k_{bl}, \Delta v, CTE, HE, v_{current}}_{\text{Current State (6D)}}, \underbrace{v_{long\_bl, t+1}, k_{bl, t+1}, \dots, v_{long\_bl, t+10}, k_{bl, t+10}}_{\text{Lookahead (20D)}}]$$
 
 | 그룹 | 피처 | 설명 |

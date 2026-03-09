@@ -135,4 +135,4 @@ $$Loss = (1.0 \times MSE_{Throttle}) + (1.0 \times MSE_{Steering})$$
 
 ppt 시각자료: [BC_Trajectory_Control.pdf](./tech/BC_Trajectory_Control.pdf)  
 
-trouble_shooting : [TroubleShooting_docs](./docs/tech/[26-03-10]_troubleshooting_blender.md)
+TroubleShooting : [TroubleShooting_docs](./docs/tech/[26-03-10]_troubleshooting_blender.md)

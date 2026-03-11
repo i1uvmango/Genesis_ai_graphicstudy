@@ -119,8 +119,10 @@ https://github.com/user-attachments/assets/8fecd2af-336d-4477-92e9-8e992187b3d8
 
 > 일반화의 성능을 갖춤
 
+----
 
-## 결론
+
+## Review
 > Blender2Genesis 의 Behavior Cloning 을 mlp를 통한 Inverse Mapping을 근사하여 Sim2Sim Calibration 구현
 ### 서로 엔진이 다른 Blender & GenesisAI
 * Blender: Pybullet Engine (Unicycle Kinemetics)
@@ -139,11 +141,25 @@ https://github.com/user-attachments/assets/8fecd2af-336d-4477-92e9-8e992187b3d8
 * 하지만 GenesisAI는 `NN-friendly`
 * Neural-Network 를 사용하여 `blender` vs `Genesis` 의 engine/solver 차이를 연결하려 했음
 
-### Inverse Dynamics
-* Neural Network(MLP) 를 사용하여 state 간의 mapping 을 학습
+### MPPI 최적화의 한계와 전문가 데이터 생성 
+* MPPI의 역할: GenesisAI 환경에서 최적의 제어 시퀀스를 찾기 위해 수백 개의 샘플을 genesis 엔진을 사용하여 시뮬레이션
 
-### Data 양을 늘려 MLP가 충분히 mapping 관계를 이해하도록 함
-* data augmentation, DAgger 등 사용
+* 문제: 높은 컴퓨팅 비용으로 `실시간 제어(Real-time Control) 불가`
+* 해결책: 오프라인 상태에서 MPPI 최적화를 통해 고순도의 주행 데이터(State - Action)를 선제적으로 추출하여 지도학습을 위한 `정답지(Ground Truth)`로 활용함.
+
+### Inverse Dynamics Mapping
+* 차량의 현재 물리 상태(State)와 미래 목표 궤적을 입력
+* `제어 입력($T$: Throttle, $S$: Steer)`을 출력으로 하는 `Inverse Dynamics` 모델을 설계
+
+### 지도학습(Supervised Learning)
+*  MPPI가 생성한 최적의 `제어 시퀀스`를 정답으로 삼아 MLP(Multi-Layer Perceptron)가  비선형 매핑 관계를 `모방(Imitation Learning)`하도록 학습시킴.
+
+### 실시간 추론 실현 (Real-time Inference)효율성 극대화: 
+* 학습된 MLP 모델은  한 번의 순전파(Forward Pass)만으로 제어값을 출력함. 
+* 프레임당 수천번 샘플링이 필요한 MPPI에 비해 연산 속도를 비약적으로 향상시킴.
+
+### Blender 2 Genesis 연결: 
+* 이를 통해 Blender의 운동학적 명령을 Genesis의 역학적 제어값으로 즉각 변환하여, 지연 시간(Latency) 없는 실시간 Blender to Genesis 추론 및 제어를 구현함.
 
 
 ## 4. 향후 계획

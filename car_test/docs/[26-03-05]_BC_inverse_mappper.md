@@ -60,27 +60,28 @@ $$Loss = (w_T \times MSE_{Throttle}) + (w_S \times MSE_{Steering})$$
 
 ## 2. 주행 결과
 
-### 2-1. 초기 학습 (단일 경로)
+### 2-1.  Overfitting된 경로
+
+> 1개의 경로에 대해서만 학습한 결과
 
 https://github.com/user-attachments/assets/02133107-ce91-4b64-bdae-7ebbb78eedcc
 
 
-* 학습한 경로 주행
+### 위 체크포인트로 학습하지 않은 새로운 경로 주행
 
 https://github.com/user-attachments/assets/8fecd2af-336d-4477-92e9-8e992187b3d8
 
-* 동일 체크포인트, 학습하지 않은 새로운 경로 주행
-    * 제대로 추종하지 못하여, 조금 더 많은 데이터가 필요하다고 느꼈음
+* 제대로 경로 추종하지 못하여, 더 많은 데이터가 필요하다고 느꼈음
 
 
 
 
 
 
-#### 새로운 데이터 추가하여 통합 데이터 학습 
+## 3. 새로운 데이터 추가하여 통합 데이터 학습 
 > 데이터를 추가하여 mlp 학습 진행 : 아래 영상들은 mppi 최적화를 시킨 golden T,S 로 주행한 결과
 
-### MPPI Golden T,S 최적화값 주행영상 (클릭시 영상 재생)
+### 3-1. 새로운 데이터 MPPI Golden T,S 최적화값 주행영상 (클릭시 영상 재생)
 
 | 경로 | 클릭 시 영상 재생 |
 | :--- | :---: |
@@ -90,46 +91,68 @@ https://github.com/user-attachments/assets/8fecd2af-336d-4477-92e9-8e992187b3d8
 | any (영상 없음) | ![any](../res/0222/any.png) |
 
 * 데이터 증강을 통해 반전된 경로도 "데이터 있음" 으로 간주
+* CTE , HE 모두 부호를 주어 오차의 왼/오른쪽 구별하여 학습 &rarr; 복원력 모델이 학습하게 함
 
-### 2-3. 단일 vs 통합 데이터 학습 비교 (클릭 시 영상 재생)
+### 3-2. Overfitting vs 6개 경로 데이터 통합 학습 비교 (클릭 시 영상 재생)
 
-* 오른쪽(more data)만 영상 있음
+> 통합 데이터 주행 영상만 있음(오른쪽 사진 클릭)
 
-| 구분 | overfitting | more data |
+| 구분 | overfitting 주행 | 통합 데이터 주행(영상) |
 | - | - | - |
-| omm | ![](../res/0222/1data.png) | [![failed](../res/0222/metadata.png)](https://github.com/user-attachments/assets/64e1f429-4c80-47fd-8c99-47b7c0ca80e0) |
-| curve | ![](../res/0222/1_curve.png) | [![curve_mlp](../res/0222/curve_mlp.png)](https://github.com/user-attachments/assets/17c3dfc7-82f6-4547-9daf-07baf3f122df) |
-| left | ![](../res/0222/1_left.png) | [![left_mlp](../res/0222/left_mlp.png)](https://github.com/user-attachments/assets/d5c331a9-e02a-495c-ba80-efa8654ebc81) |
-| s curve | ![](../res/0222/1s.png) | ![](../res/0222/mlp_s.png) |
+| omm | [![omm](../res/0222/path_new.png)](https://github.com/i1uvmango/Genesis_ai_graphicstudy/issues/32#issue-4058358397) | [![mlp_omm](../res/0222/path_new.png)](https://github.com/user-attachments/assets/043d166b-b0e5-4f7c-940d-47966c439f59) |
+| curve | ![](../res/0222/curve1.png) | [![curve_mlp](../res/0222/curve1.png)](https://github.com/user-attachments/assets/e031fadc-0774-46c6-a9dc-267cfccdd9be) |
+| curve2 | ![](../res/0222/curve2.png) | [![curve2_mlp](../res/0222/curve2.png)](https://github.com/user-attachments/assets/2735084d-97f8-4808-a5c3-278165e4c0b0) |
+| left | ![](../res/0222/1_left.png) | [![left_mlp](../res/0222/left_mlp.png)](https://github.com/user-attachments/assets/7450a9af-ad45-4c0d-97e6-80d56f813d51) |
+| s curve | ![](../res/0222/1s.png) | [![mlp_s](../res/0222/mlp_s.png)](https://github.com/i1uvmango/Genesis_ai_graphicstudy/issues/27#issue-4058185702) |
+| any | ![](../res/0222/mlp_any.png) | [![any](../res/0222/mlp_any.png)](https://github.com/user-attachments/assets/2c29ac61-00e2-4da4-98cc-133332ed7b6f) |
 
-> s_curve 주행은 단일 데이터 학습보다 통합 데이터 추론이 더 나은 결과 → 더 많은 정교한 golden 데이터가 필요함
+> 전체적으로 1개의 경로에 대해서 학습한 결과보다, 많은 데이터에 대해 학습한 후, 추론하는 게 결과가 좋았음
 
----
-
-#### omm 경로 발산 원인 분석
-
-$$Loss = (1.0 \times MSE_{Throttle}) + (1.0 \times MSE_{Steering})$$
-> 현재 Loss = 1:1 T:S 비율로 학습 (가장 일반적인 성능을 띔)
-
-**1. T:S 손실 비율별 특성** → [Loss 함수 표 참고](#loss-함수)
-
-> 곡률이 크거나 시작 직후 곡률이 있는 경로에서는 어떤 비율이든 오차가 많음
-
-**2. Overfitting 가능성**
-* Input dim(26)에 비해 데이터가 ~2k로 적어 overfitting 우려
-    * 데이터를 더 생성하여 `mlp`의 경험을 늘려야 함
 
 ---
+
+### 3-3. 학습하지 않은 새로운 경로 추론
+
+[![new1](../res/0222/new1.png)](https://github.com/user-attachments/assets/1897e0ea-6dc8-4ebf-bfb7-7b46bf2e321d)
+
+[![new2](../res/0222/new2.png)](https://github.com/user-attachments/assets/63a83b3d-1214-4fb0-9b9a-8dc2beb2fbee)
+
+> 일반화의 성능을 갖춤
+
+
+## 결론
+> Blender2Genesis 의 Behavior Cloning 을 mlp를 통한 Inverse Mapping을 근사하여 Sim2Sim Calibration 구현
+### 서로 엔진이 다른 Blender & GenesisAI
+* Blender: Pybullet Engine (Unicycle Kinemetics)
+* GenesisAI: 자체 물리 엔진 (Dynamics) 
+
+### Behavior Cloning
+* State 를 동기화 시켰어야함
+* 최종 목표는 Real2Sim Calibration 이므로, `Dynamics State` 를 기준으로 잡음
+    * 물리적 정합성도 확보해야했음
+
+### Engine 의 차이를 연결
+* Blender 의 차량에서 추출한 데이터를 Genesis 솔버에 넣고, `Loss Function`을 정의하여 `미분`하면 최적의 mapping 을 구하는 방식
+
+### 하지만 GenesisAI Engine 은 BlackBox
+* non-differentiable(미분불가능)
+* 하지만 GenesisAI는 `NN-friendly`
+* Neural-Network 를 사용하여 `blender` vs `Genesis` 의 engine/solver 차이를 연결하려 했음
+
+### Inverse Dynamics
+* Neural Network(MLP) 를 사용하여 state 간의 mapping 을 학습
+
+### Data 양을 늘려 MLP가 충분히 mapping 관계를 이해하도록 함
+* data augmentation, DAgger 등 사용
+
 
 ## 4. 향후 계획
 
-> 현재 BC 모델은 단일 경로에 특화 → 일반화 부족, Closed-loop OOD 오차 누적 위험
-
 | # | 방법 | 핵심 내용 |
 | :---: | :--- | :--- |
-| 1 | **데이터 추가** | Blender에서 다양한 궤적(직선·S자·U턴 등) 추가 생성 → 통합 MPPI Golden Data로 BC 재학습 |
+| 1 | **일반화 성능: 데이터 추가** | Blender에서 다양한 궤적(직선·S자·U턴 등) 추가 생성 |
 | 2 | **Residual RL** | BC 모델 위에 잔차 RL 에이전트를 결합 → 궤도 이탈 잔여 오차를 실시간 보정 |
-| 3 | **DAgger** | 실패 구간 데이터 재수집 → MPPI로 golden (T,S) 재산출 → Dataset 추가 후 반복 재학습 ([참고](./tech/[26-03-05]_DAgger.md)) |
+| 3 | **보강 방법 : DAgger** | 실패 구간 데이터 재수집 → MPPI로 golden (T,S) 재산출 → Dataset 추가 후 반복 재학습 ([참고](./tech/[26-03-05]_DAgger.md)) |
 
 ------------------
 

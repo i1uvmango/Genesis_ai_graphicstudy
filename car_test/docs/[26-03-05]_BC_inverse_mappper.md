@@ -3,39 +3,32 @@
 
 > Stage 2의 MPPI golden T,S 를 정답값으로 MLP를 학습 (Real-time inference)
 
-![](../res/0222/mlp.png)
+
 
 ---
 
 ## 1. 모델 구조
 
 
-### Input Features (26 Dim)
+### Input Features (25 Dim)
 
-![](../res/0222/input.png)
 
-$$\mathbf{X} = [\underbrace{v_{long\_bl}, k_{bl}, \Delta v, CTE, HE, v_{current}}_{\text{Current State (6D)}}, \underbrace{v_{long\_bl, t+1}, k_{bl, t+1}, \dots, v_{long\_bl, t+10}, k_{bl, t+10}}_{\text{Lookahead (20D)}}]$$
+
+$$\mathbf{X} = [\underbrace{ v_{current}, k_{current}}_{\text{Current State (2D)}}, \underbrace{\Delta v, CTE, HE, }_{\text{Feedback (3D)}}  \underbrace{v_{long\_bl, t+1}, k_{bl, t+1}, \dots, v_{long\_bl, t+10}, k_{bl, t+10}}_{\text{Lookahead (20D)}}]$$
 
 | 그룹 | 피처 | 설명 |
 | :--- | :--- | :--- |
-| **Feedforward (FF)** | `v_long_bl` | Blender 목표 속도 |
-| | `k_bl` | Blender 목표 곡률 |
-| **Dynamics** | `delta_v` | 속도 오차 ($v_{long\_bl} - v_{long\_gen}$) |
-| | `v_current` | 현재 절대 속도 ($v_{long\_gen}$) |
-| **Genesis Feedback (FB)** | `cte` | 횡방향 거리 오차 (Genesis vs Blender) |
+| **Dynamics(current state)** | `v_current` | 현재 절대 속도 ($v_{long\_gen}$) |
+| | `kappa_current` | 현재 곡률 ($k_{current\_gen}$) |
+| **Genesis Feedback (FB)** | `cte` | 횡방향 거리 오차(부호 구분) (Genesis vs Blender) |
 | | `he` | 횡방향 헤딩 오차 (Genesis vs Blender) |
-| **Lookahead** | `(v_long_bl, k_bl)` | t+1 ~ t+10 스텝의 미래 정보 벡터 (20D) |
+| | `delta_v` | 속도 오차 ($v_{long\_bl} - v_{long\_gen}$) |
+| **Lookahead(FF)** | `(v_long_bl, k_bl)` | 블렌더 경로 t+1 ~ t+10 스텝의 미래 정보 벡터 (20D) |
 
-| 기법 | 내용 |
-| :--- | :--- |
-| **Closed-loop** | Genesis의 피드백 오차(CTE, HE)를 반영한 학습 |
-| **Lookahead** | t+1~t+10의 미래 궤적 $(v_{long\_bl}, k_{bl})$을 20D 벡터로 주입 → 곡률 변화 사전 입력 |
-| **Data Augmentation** | 좌우 반전 증강으로 데이터 2배 확장 ($k, CTE, HE$, 조향 $S$ 부호 반전) |
-| **DAgger 효과** | Train 셋 한정, $CTE$($\pm0.1\text{m}$)·$HE$($\pm0.05\text{rad}$) 피처에 가우시안 노이즈 주입 |
 
 ### Layers
 
-* Linear(26, 128), ELU()
+* Linear(25, 128), ELU()
 * Linear(128, 128), ELU()
 * Linear(128, 64), ELU()
 * Linear(64, 2), Tanh()
@@ -52,10 +45,11 @@ $$Loss = (w_T \times MSE_{Throttle}) + (w_S \times MSE_{Steering})$$
 
 | Loss 비율 (T:S) | 속도 추종 | 곡률 추종 | 비고 |
 | :--- | :---: | :---: | :--- |
-| `1:1` | 양호 | 미흡 | 현재 설정 (가장 일반적인 성능) |
+| `1:1` | 양호 | 미흡 | **현재 설정** (가장 일반적인 성능) |
 | `1:2` | 약간 오차 | 개선됨 | - |
-| `1:5` | 발산 (속도 과속) | 양호 | 추론 시 속도가 너무 빨라짐 |
+| `1:5` | 발산 (속도 과속) | 양호 | 추론 시 속도가 너무 빨라짐, 조향 불가 |
 
+> blender 와 genesis 의 데이터를 `frame`(time)에 따라 정확히 맞추면 1:1 의 비율이 가장 적절
 ---
 
 ## 2. 주행 결과

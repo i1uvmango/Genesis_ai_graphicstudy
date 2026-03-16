@@ -101,6 +101,7 @@ $$R_{genesis} = M \cdot R_{blender} \cdot M^{-1}$$
     > 위 두개의 변수로 차량의 움직임을 수학적으로 완벽하게 모사할 수 있지만, 실제 차량의 **slip 현상** 마찰력, 원심력 등 동역학적 상태를 고려하지 못함
 
 #### Genesis : Dynamics (물리적 현상)
+![](../res/0316/state.png)
 * velocity
 * angular velocity
 * yaw rate
@@ -108,7 +109,7 @@ $$R_{genesis} = M \cdot R_{blender} \cdot M^{-1}$$
 * friction
     > 많은 동역학적 state 존재
 
-* 초기 두 시뮬레이션을 연결하는 state로 `acceleration`, `curvature` 를 사용하려 했지만, Genesis 와 Blender 의 움직임 불일치에서 인사이트를 얻어 `동역학 데이터`로 통일
+* 초기 두 시뮬레이션을 연결하는 state로 `acceleration`, `curvature` 를 사용하려 했지만, Genesis 와 Blender 의 움직임 불일치에서 인사이트를 얻어 여러 동역학 데이터 사용
 
 
 
@@ -159,6 +160,11 @@ $$R_{genesis} = M \cdot R_{blender} \cdot M^{-1}$$
 
 
 ## Inverse Dynamics
+
+
+![](../res/0316/pipeline.png)
+
+
 
 > Blender 와 Genesis는 물리 엔진이 다르므로, 같은 입력값을 넣어도 결과가 다름, Inverse Dynamics 를 통해 Blender 데이터를 넣었을때 Genesis 세상에서 같은 움직임이 나오도록 `real-time` 변환이 필요함
 
@@ -246,6 +252,8 @@ MPPI insight & trouble shooting docs : [MPPI_troubleshooting](https://github.com
 
 ### Stage 2: MLP 학습 (Blender2Genesis Mapper)
 
+
+
 > 시간/비용이 높은 MPPI trasformation 대신, MLP를 통해 Real-time 으로 Blender를 넣었을때 Genesis World 에서 동일한 움직임을 구현하자
 
 * MLP : Real-time Blender2Genesis Mapper 를 differentiable 한 MLP로 근사함  
@@ -253,6 +261,7 @@ MPPI insight & trouble shooting docs : [MPPI_troubleshooting](https://github.com
 
 
 Pipeline
+![](../res/0316/inverse_mapping.png)
 * Input : Blender CSV , Golden CSV
 * MLP : Inverse Dynamics Supervised Learning
 * Output : Throttle*, Steer* 
@@ -282,6 +291,7 @@ $$\mathbf{X} = [\underbrace{ v_{current}, k_{current}}_{\text{Current State (2D)
 
 
 ### Layers
+![](../res/0316/mlp.png)
 
 * Linear(25, 128), ELU() &rarr; 오차항의 부호 때문에 ELU 사용
 * Linear(128, 128), ELU()

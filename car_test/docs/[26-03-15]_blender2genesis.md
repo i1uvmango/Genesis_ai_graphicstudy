@@ -56,9 +56,11 @@ $$R_{genesis} = M \cdot R_{blender} \cdot M^{-1}$$
 | 좌표계 | GenesisAI (Physics Engine) | Blender (Modeling/Animation)|
 | - | - | - |
 |시스템 종류| 오른손 좌표계 (RHS) | 오른손 좌표계 (RHS) |
-|정면 (Forward)| +X 축 | −Y 축 |
+|정면 (Forward)| +X 축 | +Y 축 |
 |위 (Up)| +Z 축 |+Z 축 |
 |왼쪽/오른쪽| +Y (Left) |+X (Right) |
+
+하지만 RBC Car Addon이 -y 방향을 바라보고 있음
 
 * URDF 로딩 / 데이터 추출 시 좌표계 변환이 매우 중요
 
@@ -250,13 +252,12 @@ MPPI insight & trouble shooting docs : [MPPI_troubleshooting](https://github.com
 * method : Supervised Learning  
 
 
-
 Pipeline
 * Input : Blender CSV , Golden CSV
 * MLP : Inverse Dynamics Supervised Learning
 * Output : Throttle*, Steer* 
 
-
+> 8개의 서로 다른 주행 데이터를 data augmentation(좌우 반전, 노이즈 증강)하여 학습시킴 (3k CSV lines)
 
 #### Input Features (25 Dim)
 
@@ -314,3 +315,6 @@ $$\mathbf{y} = \begin{bmatrix} T \\ S \end{bmatrix} = \begin{bmatrix} T_{golden}
 > "학습되지 않은 임의의 경로에서도 안정적인 주행을 보인 것은, 본 모델이 특정 경로를 암기한 것이 아니라 [상태 오차 $\rightarrow$ 최적 제어값]으로 이어지는 물리적 인과관계(Physics Intuition)를 학습했음을 시사한다."
 
 for Inverse Dynamics details : [BC Inverse Mapper](https://github.com/i1uvmango/Genesis_ai_graphicstudy/blob/main/car_test/docs/%5B26-03-05%5D_BC_inverse_mappper.md)
+
+---
+ppt : [Blender2Genesis_Sim2Sim_Calibration](https://github.com/i1uvmango/Genesis_ai_graphicstudy/blob/main/car_test/docs/Blender2Genesis_Sim2Sim_Calibration.pdf)

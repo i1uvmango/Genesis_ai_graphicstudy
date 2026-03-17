@@ -10,12 +10,12 @@ Nvidia 에서 만든 Neural Network friendly 한 물리 시뮬레이션 환경
 about Genesis: https://genesis-embodied-ai.github.io/
 
 ## 목표
-* Sim2Sim Calibration
+* Sim2Sim Calibration &rarr; 본 연구의 단계
 * Real2Sim Calibration
 * GenesisAI 를 활용한 Sim2Real Policy Transfer 까지
 
 ### Sim2Sim Calibration 단계에 있음
-* Blender2Genesis calibration
+* Blender2Genesis calibration(Sim2Sim Calibration)
 
 
 ## Blender
@@ -59,8 +59,8 @@ $$R_{genesis} = M \cdot R_{blender} \cdot M^{-1}$$
 | - | - | - |
 |시스템 종류| 오른손 좌표계 (RHS) | 오른손 좌표계 (RHS) |
 |정면 (Forward)| +X 축 | +Y 축 |
-|위 (Up)| +Z 축 |+Z 축 |
-|왼쪽/오른쪽| +Y (Left) |+X (Right) |
+|위 (Up)| +Z 축 | +Z 축 |
+|왼쪽/오른쪽| +Y (Left) | +X (Right) |
 
 하지만 RBC Car Addon이 -y 방향을 바라보고 있음
 
@@ -177,23 +177,40 @@ $$R_{genesis} = M \cdot R_{blender} \cdot M^{-1}$$
 > Genesis 엔진은 Non-differentiable 하므로, 전통적인 Gradient Based Optimization이 불가능함.  
 Genesis World 에서 경로를 완벽하게 추종하는 데이터를 만들어내고, NN을 통해 데이터를 기반으로 `지도학습`하는 방향으로 설계
 
+### MPPI 란?
+Model Predictive Path Integral 으로, 샘플링 기반의 모델 예측 제어(MPC) 기법으로, 여러 경로를 확률적으로 샘플링하여 최적의 제어 입력을 도출하는 알고리즘
+
+#### MPPI 흐름 (for every frame)
+1. 600개의 병렬환경 생성 (`t 시점`)
+2. 600개의 환경마다 perturbation 을 주어 서로 다른 제어값 Control(T,S) 세트 생성
+3. 10 horizon(10 dt: 약 0.4초) 동안 10개의 제어값(control1 ~ control 10)을 주입 후 결과에 대해 cost 계산
+4. 600개의 샘플 중 exp(-cost/lambda) 를 통해 최적의 제어값 `Golden_t_(T,S)` 샘플링
+5. 10프레임에 대해 cost 계산 한 `golden_t_(T,S)`를 `t시점`의 제어값으로 지정
+6. 1번으로 return: `t+1` 시점 state + `warm-start`(이전 frame 의 golden_(T,S) 근처에서 `golden_t+1_(T,S)`를 탐색 )
+
+
+
+MPC 방법 시도 & 실패 정리: [MPC2MPPI](../docs/%5B26-02-16%5D_mpc2mppi.md)
+
 
 
 ### Stage 1 : MPPI (정답값 데이터 생성)
 > NN(MLP)를 학습하기 위한 Genesis Engine과 GPU를 사용한 정답 데이터 생성과정
 
-* 수학/물리적으로 feasible 한 데이터 생성 : Genesis Engine 을 거쳐 나온 데이터
+* `수학/물리적으로 feasible 한 데이터` 생성 : Genesis Engine 을 거쳐 나온 데이터
     * Genesis Engine 은 관성/질량 등 동역학 state 반영하는 물리 엔진
 
 *  `GPU`의 병렬 연산 능력을 활용하여 수백개의 가상 시나리오를 동시에 `시뮬레이션(Genesis Engine)`하고 확률적 샘플링을 통해 가장 결과가 좋은 시나리오(데이터)를 선택 
 
 #### for every Frame(Receding Horizon : 10 horizon)  
   ![](../res/0316/mppi.png)
-1. 현재 차량의 상태(`state` : 26차원)에서 출발하는 600개의 차량 생성
-2. 각 환경에 무작위 노이즈를 주어 서로 조금씩 다른 경로를 가게 만듦
-3. 미래예측(Rollout): 현재부터 미래 `10frame` 동안 움직이는 시퀀스를 cost 로 계산  
-4. 비용(cost)가 가장 낮은 우수 주행 데이터 Softmax weighting 하여 최적의 해 (`동역학 state`) 도출
-5. csv 기록 &rarr; 최적의 `(동역학 state)`값을 다음 Frame에 전달하여 근처에서 최적화 하도록 함 (학습 안정성) 
+#### for every frame
+1. 600개의 병렬환경 생성 (`t 시점`)
+2. 600개의 환경마다 perturbation 을 주어 서로 다른 제어값 Control(T,S) 세트 생성
+3. 10 horizon(10 dt: 약 0.4초) 동안 10개의 제어값(control1 ~ control 10)을 주입 후 결과에 대해 cost 계산
+4. 600개의 샘플 중 exp(-cost/lambda) 를 통해 최적의 제어값 `Golden_t_(T,S)` 샘플링
+5. 10프레임에 대해 cost 계산 한 `golden_t_(T,S)`를 `t시점`의 제어값으로 지정
+6. 1번으로 return: `t+1` 시점 state + `warm-start`(이전 frame 의 golden_(T,S) 근처에서 `golden_t+1_(T,S)`를 탐색 )
 
 #### MPPI 가중치
 | 가중치 | 설명 |
@@ -221,6 +238,8 @@ MPPI insight & trouble shooting docs : [MPPI_troubleshooting](https://github.com
 ---
 
 #### 추출된 Golden Data CSV
+* 최대한 많은 동역학 state를 포함하고자 raw 한 데이터들을 최대한 많이 추출
+* MLP input sheet 가 아님
 
 | 분류 | 컬럼명 | 단위/타입 | 설명 | 
 | :--- | :--- | :--- | :--- | 
@@ -280,10 +299,15 @@ $$\mathbf{X} = [\underbrace{ v_{current}, k_{current}}_{\text{Current State (2D)
 
 #### Insight
 * 정보 압축 및 학습 안정성을 위해 `delta`값 사용
-* 스스로 오차를 고칠 수 있도록 `feedback` 항 사용
+* 스스로 오차를 고칠 수 있도록 `feedback` 항 명시적으로 부여
 * MPPI 의 설계와 동일하게 미래 10 frame의 `(vel, kappa)`을 주어 미래 정보 고려한 제어를 할 수 있도록 함
+* 학습 시 train set에만 노이즈 주입하여, 모델이 더 많은 상황을 경험하도록 함(데이터 증강 + 반전)
+
 
 #### state sheet(input : 25dim)
+* MLP input state 정리
+
+
 | 그룹 | 피처 | 설명 |
 | :--- | :--- | :--- |
 | **Dynamics(current state)** | `v_current` | 현재 절대 속도 ($v_{long\_gen}$) |
@@ -293,11 +317,12 @@ $$\mathbf{X} = [\underbrace{ v_{current}, k_{current}}_{\text{Current State (2D)
 | | `delta_v` | 속도 오차 ($v_{long\_bl} - v_{long\_gen}$) |
 | **Lookahead(FF)** | `(v_long_bl, k_bl)` | 블렌더 경로 t+1 ~ t+10 스텝의 미래 정보 벡터 (20D) |
 
+> 이후 Real2Sim 시, 차량에 부착된 센서에서 동역학적 state를 추출할텐데, 위 MLP 구조를 통해 `dynamic state` &rarr; `(T,S)` mapping 이 가능함
 
 ### Layers
 ![](../res/0316/mlp.png)
 
-* Linear(25, 128), ELU() &rarr; 오차항의 부호 때문에 ELU 사용
+* Linear(25, 128), ELU() &rarr; 오차항(CTE,HE)의 부호 때문에 ELU 사용
 * Linear(128, 128), ELU()
 * Linear(128, 64), ELU()
 * Linear(64, 2), Tanh()
@@ -307,6 +332,7 @@ $$\mathbf{X} = [\underbrace{ v_{current}, k_{current}}_{\text{Current State (2D)
 $$\mathbf{y} = \begin{bmatrix} T \\ S \end{bmatrix} = \begin{bmatrix} T_{golden} \\ S_{golden} \end{bmatrix}$$
 
 * `Tanh()`를 사용하여 Throttle, Steering 모두 `[-1, 1]` 범위로 출력
+* Dynamic States &rarr; (T,S) mapping
 
 > 이제 Blender의 주행 데이터를 넣었을때 해당 움직임을 MPPI 계산 없이, `Real-Time`으로 Genesis World 에서 구현이 됨
 

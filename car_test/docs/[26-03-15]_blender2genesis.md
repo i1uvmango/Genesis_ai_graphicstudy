@@ -25,7 +25,7 @@ https://github.com/user-attachments/assets/e0609422-8a9c-4695-98d5-4110debb4fde
 
 ### 특징
 
-* Pybullet 기반의 운동학(Unicycle Kinematics) 기반 시뮬레이션
+* Bullet Physics 기반의 운동학(Unicycle Kinematics) 기반 시뮬레이션
 * 이상적 거동: 질량이나 관성, 엔진 성능의 한계 등 '현실의 제약'이 배제된 상태에서 수학적으로 완벽하게 경로를 추종하는 움직임
 
 

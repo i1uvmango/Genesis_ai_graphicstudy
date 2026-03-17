@@ -39,8 +39,10 @@ https://github.com/user-attachments/assets/e0609422-8a9c-4695-98d5-4110debb4fde
 
 ### 특징
 
-* GenesisAI의 자체 엔진
+* GenesisAI의 자체 엔진(Solver: 다음 step 의 state를 계산)
 * 동역학적 거동: 질량, 관성, 원심력 등 현실에서 일어나는 물리 제약 조건 및 오차를 반영한 움직임
+* Blackbox Engine 의 성능은 떨어질 수 있지만, Bullet Engine 대비 43만배 빠른 속도의 장점으로 학습시켜서 보완하는 장점
+
 
 
 ## Blender2Genesis

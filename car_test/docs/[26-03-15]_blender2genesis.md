@@ -29,7 +29,7 @@ https://github.com/user-attachments/assets/e0609422-8a9c-4695-98d5-4110debb4fde
 * 이상적 거동: 질량이나 관성, 엔진 성능의 한계 등 '현실의 제약'이 배제된 상태에서 수학적으로 완벽하게 경로를 추종하는 움직임
 
 
-참조 문서 링크: https://github.com/i1uvmango/Genesis_ai_graphicstudy/blob/main/car_test/docs/%5B25-10-23%5D_blender3.md
+
 
 
 
@@ -71,6 +71,8 @@ $$R_{genesis} = M \cdot R_{blender} \cdot M^{-1}$$
 * Link(뼈대) + Joint(관절) 로 구성
 * 동역학적 속성: 차량의 각 부품(Chassis, Wheels)에 실제 질량과 관성 값을 입력
 * 조인트 제어: 앞바퀴의 조향각 한계($-0.35 ~ 0.35$ rad), 강성($K_p, K_v$)을 설정
+    * kp: 관절 gain
+    * kv: 관절 damping
 * Wheel Joints: 뒷바퀴의 구동을 위해 각속도 제어가 가능한 continuous 타입으로 정의
 * 물리적 상호작용: 바퀴 링크의 마찰 계수(Friction) 등을 설정
 

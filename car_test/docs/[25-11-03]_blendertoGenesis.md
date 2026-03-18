@@ -1,14 +1,17 @@
 # Adjusting GenesisAI Engine to Blender
 
 ## 연구실 terrain blender 적용
-[![terrain_drive](../res/terraindrive_mesh.mp4)](https://github.com/user-attachments/assets/1bcbc266-c78b-4341-a654-860d5592b4b7)
-* terrain: passive collision, mesh 표면
-    * convex hull: 직육면체로 표현 &rarr; 단순한 계산
-    * mesh: terrain 표현 하나하나를 mesh에 따라 계산 &rarr; 연산량 증가, 정교한 표현
+https://github.com/user-attachments/assets/d9fadfab-778b-4728-86b9-1e92a61a0639
+
+ terrain: passive collision, mesh 표면
+ 
+ * convex hull: 직육면체로 표현 &rarr; 단순한 계산
+ * mesh: terrain 표현 하나하나를 mesh에 따라 계산 &rarr; 연산량 증가, 정교한 표현
       
 
 ## 물리 법칙 모사
 Blender는 물리 엔진을 외부에 제공하지 않음
+
 * Bullet Physics Library를 기반함(C++)
 * 이를 모사하기 위해 Pybullet을 Genesis에서 사용  
 
@@ -18,11 +21,13 @@ Blender는 물리 엔진을 외부에 제공하지 않음
 * Con: CPU 기반 연산이기에 매우 느리고, Genesis에서 돌리는 이유가 사라진다
     * GPU 기반의 빠른 연산 & 렌더링이 필요하기에 PyBullet은 탈락 
 
-## 직접 URDF 만들어서 엔진 학습
-#### URDF 변환 하며 생긴 문제 정리
+## URDF 설계
+
+### URDF trouble_shooting
+
 * 시도한 것: blender에서 mesh+bone을 parenting으로 연결하여 한번에 genesis에 import 하려했음  
 
-##### 왜 다음과 같이 하면 안되는가?  
+#### 왜 다음과 같이 하면 안되는가?  
 
 * parenting 해체 필요: Blender에서 Export 시 parenting이 되어있으면 x,y,z 위치가 부모에 종속적이어서 이상한 위치, 회전된 상태로 생성 될 수 있음
     * URDF는 절대 좌표계 기준으로만 동작, Blender의 local transform 정보를 인식하지 못함
@@ -42,6 +47,7 @@ https://github.com/user-attachments/assets/ba70947a-7ed5-459c-bf7f-274ecad34938
 * 모두 parenting 해제 후 (0,0,0)로 좌표 설정 후 `.dae` 로 export
 * URDF에서 5개의 `.dae` 파일 읽은 후 Genesis에 로딩
 
+
 #### Export 시 다음과 같은 설정을 따름
 ![export_setting](../res/export_setting.png)
 * Selection Only : 마우스 선택한 mesh 만 export
@@ -58,9 +64,9 @@ https://github.com/user-attachments/assets/ba70947a-7ed5-459c-bf7f-274ecad34938
 * 좌표계 설정 x , z로 재설정해야함
 * dae 파일이 URDF에 호환이 잘된다고 하여 사용했지만, 좌표계 꼬임이 많다고 함 &rarr; Export 좌표계 x,z로 변경 후에도 잘 되지않는다면 glb(직접 변환 필요), obj 포맷으로 다시 해볼 예정
     
-# blender 차 파일을 Genesis에 적용하는게 오류가 너무 많아 URDF로 우선 테스트
+## URDF trouble shooting
 
-# Genesis 에 URDF 로딩
+### Genesis 에 URDF 로딩
 문제: 
 * 공중에 날라감
     * Plane 충돌 방지를 위해 공중 생성
@@ -137,12 +143,12 @@ https://github.com/user-attachments/assets/ba70947a-7ed5-459c-bf7f-274ecad34938
 
 ### test 영상
 
-[![terrain_drive](../res/car_genesis_drive.mp4)](https://github.com/user-attachments/assets/6556f3a5-b75f-49a8-a252-b733c86edb08)
-* 직진, 우회전
+https://github.com/user-attachments/assets/31fd5502-5942-4174-a530-4ef404758d5e
+
 
 ------
 
-# Blender dae 파일 적용
+## URDF에 Mesh 적용
 **dae export 설정(genesis 좌표계와 일치)** 
 * forward : x축
 * up : z축 
@@ -158,13 +164,14 @@ wheel_rr: car_parts/wheel_rr.dae
 <mesh filename="car_parts/car_body.dae"/>
 </geometry>
 ```
-#### Collision: car_parts/car_body.dae (기존 box)로 설정하고 test
+### 적용 결과
 ![error](../res/blender_car_error.png)
-아래와 같이 나옴
-* 일단 pass
+
+> 좌표계 변환 문제가 매우 큼
 
 
 ### 다음 step
+
 ```
 genesis 에서 blender 데이터로 시뮬레이션 진행 
 urdf 설정
@@ -173,6 +180,7 @@ terrain physics in genesis?
 Real-to-Sim System Identification
 (or Real2Sim Calibration)
 ```
+
 1. blender data 뽑고
 2. mlp를 genesis 에 추가하여 Real-to-Sim system 을 목표함
   
@@ -182,8 +190,9 @@ Real-to-Sim System Identification
 frame	car_x	car_y	car_z	car_yaw	car_vx	car_vy	car_vz	fl_x	fl_y	fl_z	fl_vx	fl_vy	fl_vz	fr_x	fr_y	fr_z	fr_vx	fr_vy	fr_vz	rl_x	rl_y	rl_z	rl_vx	rl_vy	rl_vz	rr_x	rr_y	rr_z	rr_vx	rr_vy	rr_vz
 ```
 
-## MLP 학습
-MLP를 사용하여 Genesis 물리 시뮬레이터의 파라미터를 학습하는 시스템입니다. CSV 데이터를 사용하여 실제 차량의 움직임을 모방하는 물리 파라미터를 찾습니다. 유한 차분법을 사용하여 그래디언트를 계산하고, Adam 옵티마이저로 모델을 업데이트합니다.
+### MLP 학습
+
+> MLP를 사용하여 blender 에서의 움직임 데이터를 학습하고 MLP 추론을 통해 제어값 출력
 ---
 파일 크기
 1. physics_model.pth (MLP 모델)
@@ -203,7 +212,7 @@ pickle 오버헤드 포함: 약 50–100 KB
 총 저장 공간
 약 50–150 KB 수준입니다. 모델이 작고 저장 오버헤드가 적습니다.
 
-#### parameter
+### parameter
 ![params](../res/params.png)
 * data.csv : 89kb (매우 작음)
 * 7개의 parameter, 250프레임의 크기, 20 epoch 학습
@@ -218,10 +227,10 @@ pickle 오버헤드 포함: 약 50–100 KB
   kp_steer: 500.716
   kv_steer: 50.683
 ```
-#### checkpoint driving 영상
+### MLP 제어값 inference driving 영상
 
-[![20ckpt](../res/20ckpt.mp4)](https://github.com/user-attachments/assets/527de8cf-0bec-418e-bd65-dfa65f2ae6f3)
+https://github.com/user-attachments/assets/f5675bfd-1248-4924-9ffa-1665896719b3
 
-* 현재 body + 4 wheel 의 무게중심
+
 ---
 

@@ -1,5 +1,6 @@
 # Supervised Learning with UKMAC(Unicycle Kinematic Model for Acceleration and Curvature)
 
+> 기존 Residual RL 과 다른 방식으로 blender 와 genesis 를 연결짓는 state (a,k)를 사용하여 두 공간을 mapping 하고자함
 
 * **목표:** 속도/조향(Steer)의 목표는 Blender.
 * **지도 학습:** 속도 / 조향.

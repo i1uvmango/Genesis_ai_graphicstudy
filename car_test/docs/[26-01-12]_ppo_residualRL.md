@@ -1,5 +1,110 @@
-# PPO 보상 함수 설계 
+# Reinforced Learing : PPO(proximal policy optimization) 설계 
 
+
+## PPO 학습
+> * Residual 만을 강화학습으로 보정
+* proximal policy optimization
+    * 이전 정책과 너무 멀어지지 않도록 제한(clipping)하면서 정책을 점진적으로 개선하는 강화학습 알고리즘
+    
+
+#### about 
+![ppo](../res/0106/ppo.png)
+
+
+
+> PPO(Proximal Policy Optimization)는 Actor–Critic 구조를 기반으로,
+정책(policy)이 한 번의 업데이트에서 과도하게 변하지 않도록 제한하면서
+Policy Gradient를 안정적으로 수행하는 강화학습 알고리즘이다.
+
+### Actor network
+vector state를 입력으로 받아 action(또는 action 분포)을 출력하는 정책 네트워크
+### Critic network
+Critic network는 같은 state를 입력으로 받아 해당 상태의 기대 누적 보상 V(s)를 예측한다.
+
+* critic 에서 얻은 V(s)를 critic이 예측한 다음 step 의 V(s+1) 에서 빼고, reward(s)를 더해서 advantage 계산
+* PPO에서 계산한 Advantage가 Actor의 loss에 반영되어 다음 업데이트에서 더 좋은 행동을 낼 확률이 증가하도록 정책이 조정된다.
+
+### Terminology
+* rollout = 데이터 수집 단위
+* batch = gradient 계산 단위
+* batch가 작다고 rollout이 쪼개지는 게 아님
+* rollout은 policy update 전까지 고정
+
+---
+### mlp 입력변수 
+*  Throttle, Steer 마다 각각 MLP를 두어 담당 제어를 했음
+* 단일 MLP 제어 : 
+
+| 구분 | 사용되는 CSV 컬럼 변수 | 만들어지는 변수 | 의미 |
+|------|------------------------|----------------|------|
+| **Steer MLP** | `g_pos_x`, `g_pos_y` (전역 위치) <br> `g_qw·g_qx·g_qy·g_qz` (Quaternion) <br> `v_long` (전진 속도) <br> `steer` (레퍼런스 조향) <br> `throttle_norm` (레퍼런스 쓰로틀) | `steer_pp` – Pure Pursuit 로부터 계산된 기본 조향 <br> `e_lat` – 횡오차 (차량이 경로에서 옆으로 얼마나 벗어났는가) <br> `e_head` – 방위오차 (차량이 경로와 얼마나 다른 방향을 바라보는가) <br> `speed` – 현재 차량 속도 (`v_long`) | `steer_pp` 은 Pure Pursuit 가 목표점(look‑ahead)으로부터 구한 조향값이며, `e_lat`, `e_head`, `speed` 은 오차(state) 로서 PPO MLP에 전달됩니다. Steer MLP 은 이 4‑차원 텐서를 받아 Δsteer(조향 보정값)를 출력하고, 최종 조향은 `steer = steer_pp + Δsteer` 로 적용됩니다. |
+| **Throttle MLP** | `g_pos_x`, `g_pos_y` (전역 위치) <br> `g_qw·g_qx·g_qy·g_qz` (Quaternion) <br> `v_long` (전진 속도) <br> `throttle_norm` (레퍼런스 쓰로틀) | `e_lat` – 위와 동일한 횡오차 <br> `e_head` – 위와 동일한 방위오차 <br> `speed` – 현재 차량 속도 (`v_long`) <br> `κ` – 보조 변수 (현재 구현에서는 0 으로 고정, 곡률·가속도 등으로 교체 가능) | Throttle MLP 은 `[e_lat, e_head, speed, κ]` 를 입력으로 보정된 쓰로틀 값을 직접 출력합니다. 레퍼런스 `throttle_norm` 은 학습 시 목표값으로 사용되지만, inference 에서는 MLP 출력이 최종 쓰로틀이 됩니다. |
+
+
+## 현재 steering loss 
+
+```python
+L_path = w_lat * e_lat² + w_head * e_head² #steering
+```
+#### 다음을 개선
+* - **속도 변화에 따른 곡률 추종 오차**: Pure Pursuit 의 look‑ahead 거리 \(L\) 은 속도에 비례해 조정하지만, 급가속/감속 시 실제 곡률 \(κ\) 와 \(L\) 의 불일치가 오차를 유발.
+* - **steering 보정**: 토크 한계·조향 rate‑limit \(max\ Δsteer\) 로 급격한 명령을 제한, MLP는 제한을 고려해 부드러운 보정값을 출력.
+
+#### 미구현 요소 (steering)
+- **타이어 슬립·마찰 변화**: 슬립 비율과 마찰 계수 \(μ\) 가 속도·조향에 따라 비선형적으로 변함. 시뮬에서는 고속·코너링 시 마찰 감소를 모델링해 보정 보상에 포함.
+- **센서 노이즈·상태추정 오차**: 센서 정보 위치·속도·heading 에 Gaussian noise \(σ≈0.01 m, 0.5°\) 를 주입하고, mlp 추정된 상태와 실제 사이의 차이를 고려.
+- **모델링 불일치 (Genesis ↔ Blender)**: 질량·관성·타이어 파라미터·마찰계수 차이, 좌표계·단위 차이 등으로 동일 CSV 로도 동작이 달라짐. 이 차이를 보정하기 위한 보상 항목을 설계에 포함.
+
+## 현재 throttle loss 
+```python
+e_speed = speed - ref_speed #throttle
+
+if e_speed < 0:  # 목표보다 느림 → 강한 penalty
+    L_speed = w_slow * e_speed²
+else:            # 목표보다 빠름 → 약한 penalty
+    L_speed = w_fast * e_speed²
+
+L_throttle = L_speed + w_smooth * Δthrottle²
+```
+* **"느린 건 실패, 빠른 건 허용 가능"**
+
+
+
+
+**SteerCorrectionMLP (4D)**:
+| Index | 변수 | 설명 |
+|:---:|:---|:---|
+| 0 | `steer_pp` | Pure Pursuit 기본 조향값 |
+| 1 | `e_lat` | 횡방향 오차 |
+| 2 | `e_head` | 헤딩 오차 |
+| 3 | `speed` | 현재 속도 |
+
+**ThrottleMLP (4D)**:
+| Index | 변수 | 설명 |
+|:---:|:---|:---|
+| 0 | `e_lat` | 횡방향 오차 |
+| 1 | `e_head` | 헤딩 오차 |
+| 2 | `speed` | 현재 속도 |
+| 3 | `κ` | 곡률 (미구현, 0.0) |
+---
+![](../res/0106/0106_ppoloss.png)
+* steering 은 pure pursuit 가 너무 좋아서 거의 개선 x
+* throttle 은 개선보다는 안정성 있는 수치에 수렴함
+    * 체감상 느린데 어떻게 개선해야 할지 고민해봐야 함
+
+
+
+<video controls src="../res/0106/0106_ppo_trained.mp4" title="ppo trained control"></video>
+
+https://drive.google.com/file/d/1_Cx-tLFzT3iqk14C9zzF8wkb-LZU2ZRn/view?usp=sharing
+## next step
+
+* 구동계 동기화 어떤 방식으로 할건지
+* env, train, eval (환경, 학습, 실행/평가) 분리
+* throttle 속도 보정(blender랑 비슷하게)
+
+
+------
 ## 개요
 
 PPO Direct Control 시스템에서 사용되는 보상 함수 설계를 정리합니다.

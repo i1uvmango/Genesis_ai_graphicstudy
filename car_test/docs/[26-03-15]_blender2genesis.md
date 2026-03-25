@@ -1,39 +1,47 @@
 # Blender2Genesis Sim2Sim Calibration
 
+![](../res/0316/pipeline2.png)
 
-> 본 연구는 자율주행 차량의 Real2Sim 확장성을 확보하기 위해, 상이한 시뮬레이션 환경 간의 제어 최적화 및 매핑 기술을 다룹니다
-
-## Genesis 란?
-Nvidia 에서 만든 Neural Network friendly 한 물리 시뮬레이션 환경
+> 본 연구는 자율주행 차량의 Real2Sim &rarr; Real2Sim 확장성을 확보하기 위해, Sim2Sim: 시뮬레이션 환경 간의 제어 최적화 및 매핑 기술을 다룹니다
 
 
-about Genesis: https://genesis-embodied-ai.github.io/
+## Sim2Real Calibration : 최종 목표
+![](../res/0316/sim2real.png)
 
-## 목표
-* Sim2Sim Calibration &rarr; 본 연구의 단계
-* Real2Sim Calibration
-* GenesisAI 를 활용한 Sim2Real Policy Transfer 까지
+> AI 에이전트가 Genesis에서 학습한 제어 능력을 현실(Real world)에 Zero-shot 또는 최소 튜닝으로 그대로 수행하도록 만드는 것.
 
-### Sim2Sim Calibration 단계에 있음
-* Blender2Genesis calibration(Sim2Sim Calibration)
+장점
+* `Real_data` &rarr; `Simulation` 자동 전이
+* `현실`에서의 튜닝 비용 급감
+* 가상의 테스트의 다양성과 안정성 확보
+* `Quality Assurance Test`를 정확하게 시뮬레이션(차량 예시)
+    * 고속 회피
+    * 급조향 미끄럼
+    * 화물 무게 변환
+* 위험한 상황도 가상에서 수천 번 생성 가능
 
+> Generative Physics가 있으면 현실-가상을 매우 가깝게 만들고 그 위에서 학습된 정책(policy)은 곧바로 현실에서 동작한다. Zero-Shot Transfer의 핵심 원리.
 
-## Blender
-https://github.com/user-attachments/assets/e0609422-8a9c-4695-98d5-4110debb4fde
+### Real2Sim : 중간 단계
+![](../res/0316/real2sim.png)
+> Sim2Real 이 되려면 Real2Sim Transformation(Calibration)이 완벽하게 되어야함
 
-> Blender는 강력한 3D 저작 도구로서 차량의 주행 경로를 시각적으로 정교하게 설계할 수 있는 환경을 제공합니다. 이는 Real2Sim Calibration 전 우리가 완벽히 전이하고자 하는 reference 시뮬레이션 공간이 되었습니다.
-
-### 특징
-
-* Bullet Physics 기반의 운동학(Unicycle Kinematics) 기반 시뮬레이션
-* 이상적 거동: 질량이나 관성, 엔진 성능의 한계 등 '현실의 제약'이 배제된 상태에서 수학적으로 완벽하게 경로를 추종하는 움직임
-
-
-
-
+$RealWorld$ &rarr; $Genesis$
 
 
-## Genesis
+* Genesis: Real-World를 전이 시킬 시뮬레이션 공간
+
+
+## Sim2Sim : 본 연구 과정
+![](../res/0316/sim2sim.png)
+
+> Real-World 의 데이터를 직접 얻어오는게 제한되어 Sim2Sim calibration 을 진행했고, 이 단계가 된다면 같은 파이프라인으로  Real2Sim calibration 도 적용 가능함
+
+
+
+## Genesis (Simulation)
+
+![](../res/0316/genesis.png)
 
 > Neural Network friendly 한 물리 시뮬레이션 환경으로, Blender에서 나타나는 객체의 움직임을 모방&전이하고자 하는 공간
 
@@ -41,12 +49,60 @@ https://github.com/user-attachments/assets/e0609422-8a9c-4695-98d5-4110debb4fde
 
 * GenesisAI의 자체 엔진(Solver: 다음 step 의 state를 계산)
 * 동역학적 거동: 질량, 관성, 원심력 등 현실에서 일어나는 물리 제약 조건 및 오차를 반영한 움직임
-* Blackbox Engine 의 성능은 떨어질 수 있지만, Bullet Engine 대비 43만배 빠른 속도의 장점으로 학습시켜서 보완하는 장점
+* Blackbox Engine 의 성능은 떨어질 수 있지만, Bullet Engine 대비 `43만배 빠른 속도`의 장점으로 NN을 학습시킬 수 있는 환경 제공
 
 
+[about Genesis](https://genesis-embodied-ai.github.io/)
 
-## Blender2Genesis
-> Blender 에서의 차량 움직임을 완벽하게 모사하는 것이 목표
+[performance benchmarking](https://placid-walkover-0cc.notion.site/genesis-performance-benchmarking)
+
+
+## Blender
+https://github.com/user-attachments/assets/e0609422-8a9c-4695-98d5-4110debb4fde
+
+> Blender는 강력한 3D 저작 도구로서 차량의 주행 경로를 시각적으로 정교하게 설계할 수 있는 환경을 제공합니다. 이는 Real2Sim Calibration 전 우리가 완벽히 전이하고자 하는 `Real-World`의 대체 시뮬레이션 공간이 되었습니다.
+
+### 특징
+
+* Bullet Physics 기반의 운동학(Unicycle Kinematics) 기반 시뮬레이션
+* 이상적 거동: 질량이나 관성, 엔진 성능의 한계 등 '현실의 제약'이 배제된 상태에서 수학적으로 완벽하게 경로를 추종하는 움직임
+
+### Kinematics vs Dynamics Models
+
+![](../res/0316/model.png)
+
+| 구분 | Blender (Kinematics) | Genesis (Dynamics) |
+| - | - | - |
+| **동일 control input** 주행 비교 | ![](../res/0216/stage1.png) |  ![](../res/0216/stage2_2.png) |
+| 설명 | 이상적 주행, 수학적 일치 | 오차 존재, 물리적 현상 |
+
+
+#### Blender : UKMAC (Unicycle Kinematics Model)
+* acceleration
+* curvature
+    > 위 두개의 변수로 차량의 움직임을 수학적으로 완벽하게 모사할 수 있지만, 실제 차량의 **slip 현상** 마찰력, 원심력 등 동역학적 상태를 고려하지 못함
+
+
+#### Genesis : Dynamics (물리적 현상)
+![](../res/0316/state.png)
+* velocity
+* angular velocity
+* yaw rate
+* slip angle
+* friction
+    > 많은 동역학적 state 존재
+
+* 초기 두 시뮬레이션을 연결하는 state로 `acceleration`, `curvature` 를 사용하려 했지만, Genesis 와 Blender 의 움직임 불일치에서 인사이트를 얻어 여러 동역학 데이터 사용
+
+
+## Environment Synchronization
+> Blender 에서의 차량 움직임을 완벽하게 모사하기 위해 환경 맞추기
+
+주요 작업
+
+1. 좌표계 transformation
+2. 차량 URDF(뼈대 + mesh)
+
 
 ### 좌표계 설정
 
@@ -67,15 +123,17 @@ $$R_{genesis} = M \cdot R_{blender} \cdot M^{-1}$$
 * URDF 로딩 / 데이터 추출 시 좌표계 변환이 매우 중요
 
 
-### URDF 
+### URDF 차체
 ![car_image](../res/car_img.png)
-* Blender 의 차량을 로봇 설계에 쓰이는 URDF(Unified Robot Description Format) 으로 정의
+
+Blender의 차체를 로봇 설계에 쓰이는 URDF(Unified Robot Description Format) 으로 정의
+
 * Link(뼈대) + Joint(관절) 로 구성
 * 동역학적 속성: 차량의 각 부품(Chassis, Wheels)에 실제 질량과 관성 값을 입력
-* 조인트 제어: 앞바퀴의 조향각 한계($-0.35 ~ 0.35$ rad), 강성($K_p, K_v$)을 설정
+* **Steering Joint**: 앞바퀴의 조향각 한계($-0.35 ~ 0.35$ rad), 강성($K_p, K_v$)을 설정
     * kp: 관절 gain
     * kv: 관절 damping
-* Wheel Joints: 뒷바퀴의 구동을 위해 각속도 제어가 가능한 continuous 타입으로 정의
+* **Wheel Joints**: 뒷바퀴의 구동을 위해 각속도 제어가 가능한 continuous 타입으로 정의
 * 물리적 상호작용: 바퀴 링크의 마찰 계수(Friction) 등을 설정
 
 #### Mesh 입히기
@@ -90,37 +148,9 @@ $$R_{genesis} = M \cdot R_{blender} \cdot M^{-1}$$
 > Blender 에서 움직이는 차량의 데이터를 추출하여, Genesis 에서 동일한 움직임 구현
 
 
+### Control State (Throttle , Steer)
 
-### Unicycle Kinematics vs Dynamics (수학적 일치 vs 물리적 현상)
-
-| 구분 | Blender (Kinematics) | Genesis (Dynamics) |
-| - | - | - |
-| 주행 경로 비교 | ![](../res/0216/stage1.png) |  ![](../res/0216/stage2_2.png) |
-| 설명 | 이상적 주행 | 오차 존재 |
-
-
-#### Blender : UKMAC (Unicycle Kinematics Model)
-* acceleration
-* curvature
-    > 위 두개의 변수로 차량의 움직임을 수학적으로 완벽하게 모사할 수 있지만, 실제 차량의 **slip 현상** 마찰력, 원심력 등 동역학적 상태를 고려하지 못함
-
-#### Genesis : Dynamics (물리적 현상)
-![](../res/0316/state.png)
-* velocity
-* angular velocity
-* yaw rate
-* slip angle
-* friction
-    > 많은 동역학적 state 존재
-
-* 초기 두 시뮬레이션을 연결하는 state로 `acceleration`, `curvature` 를 사용하려 했지만, Genesis 와 Blender 의 움직임 불일치에서 인사이트를 얻어 여러 동역학 데이터 사용
-
-
-
-### Control State Mapping (Throttle , Steer)
-
-> 차량의 제어값(속도, 조향)을 연결
-
+> Simulation 을 연결 지을때의 공통 `interface`로 `Throttle`,` Steer`을 사용. 즉, Blender와 Genesis 를 연결짓는 공통의 `state`
 
 
 * Throttle : 차량의 전진 및 후진 속도를 결정하는 제어 요소 [-1,1]
@@ -128,37 +158,45 @@ $$R_{genesis} = M \cdot R_{blender} \cdot M^{-1}$$
 * Steer : 차량의 조향각을 결정하는 제어 요소 [-1,1]
     * 물리적 현상은 조향각
 
+minmax Scaler 사용
+
   | 구분 | + | 0 | - | 
   | - | - | - | - |
   | Throttle | 가속 | 속도 유지 | 감속 |
   | Steer | 좌회전 | 직진 | 우회전 |
 
-동역학적 상태를 `Throttle` , `Steer` 에 녹여내는 것이 중요함
+동역학적 정보를 `Throttle` , `Steer` 에 녹여내는 것이 중요함
 
 
 
-### Data Extraction
+### Data Extraction & Processing
 
 > Blender 차량에 센서를 두어 `dynamics state`를 직접 계산 및 추출
 $$R_{genesis} = M \cdot R_{blender} \cdot M^{-1}$$
+
+$$Blender to Genesis$$
 * 모든 데이터는 다음 basis transformation 을 통해 좌표계 일치
 
+#### Blender Car Data
 | 분류|변수명| 단위| 설명|
 | - | - | - | - |
 |기본 정보|frame|-|시뮬레이션 프레임 번호|
-|time|s|경과 시간 (Frame / FPS)|
+| |time||s|경과 시간 (Frame / FPS)|
 |위치 (Pose)|g_pos_x, y, z|m|Genesis 좌표계 기준 차량의 전역 위치|
-| - |g_qw, x, y, z|Quat|Genesis 좌표계 기준 차량의 전역 회전(쿼터니언)|
+|  |g_qw, x, y, z|Quat|Genesis 좌표계 기준 차량의 전역 회전(쿼터니언)|
 | 속도(Velocity)|g_lin_vx, y, z|m/s|Genesis 좌표계 기준 차량의 전역 선속도|
-| - |g_ang_vx, y, z|rad/s|Genesis 좌표계 기준 차량의 전역 각속도|
+|  |g_ang_vx, y, z|rad/s|Genesis 좌표계 기준 차량의 전역 각속도|
 |동역학 (Dynamics)|v_long|m/s|차량 로컬 좌표계 기준 종방향 속도 (Forward Speed)|
-| - |v_lat|m/s|차량 로컬 좌표계 기준 횡방향 속도 (Side Slip)|
-| - |yaw_rate|rad/s|초당 헤딩(Yaw) 변화량|
-| - |a|m/s2|종방향 가속도 (Δv_long/Δt)|
-| - |k (Curvature)|1/m|경로의 곡률 |
+|  |v_lat|m/s|차량 로컬 좌표계 기준 횡방향 속도 (Side Slip)|
+|  |yaw_rate|rad/s|초당 헤딩(Yaw) 변화량|
+|  |a|m/s2|종방향 가속도 (Δv_long/Δt)|
+|  |k (Curvature)|1/m|경로의 곡률 |
 | 제어량 (Raw)|steer_rad|rad|앞바퀴의 평균 조향각 (+: 좌회전 / −: 우회전)|
-| - |spin_R|rad/s|뒷바퀴의 평균 회전 각속도|
-| - |throttle_raw|-|spin_R 기반의 스로틀 입력값 (각속도 제어용)
+|  |spin_R|rad/s|뒷바퀴의 평균 회전 각속도|
+|  |throttle_raw|-|spin_R 기반의 스로틀 입력값 (각속도 제어용)
+
+
+
 
 ----
 
@@ -174,19 +212,14 @@ $$R_{genesis} = M \cdot R_{blender} \cdot M^{-1}$$
 
 ### 블랙박스 엔진(Genesis)와 MPPI 도입
 
-> Genesis 엔진은 Non-differentiable 하므로, 전통적인 Gradient Based Optimization이 불가능함.  
-Genesis World 에서 경로를 완벽하게 추종하는 데이터를 만들어내고, NN을 통해 데이터를 기반으로 `지도학습`하는 방향으로 설계
+> Genesis 엔진은 `Non-differentiable` 하므로, 전통적인 Gradient Based Optimization이 불가능함.  
+Genesis World 에서 경로를 완벽하게 추종하는 데이터(**MPPI**)를 만들어내고, NN을 통해 데이터를 기반으로 `지도학습`하는 방향으로 설계
+
+* Genesis Solver 는 여러가지가 있지만 동역학을 계산하는 rigid solver 는 미분이 지원되지 않음
 
 ### MPPI 란?
 Model Predictive Path Integral 으로, 샘플링 기반의 모델 예측 제어(MPC) 기법으로, 여러 경로를 확률적으로 샘플링하여 최적의 제어 입력을 도출하는 알고리즘
 
-#### MPPI 흐름 (for every frame)
-1. 600개의 병렬환경 생성 (`t 시점`)
-2. 600개의 환경마다 perturbation 을 주어 서로 다른 제어값 Control(T,S) 세트 생성
-3. 10 horizon(10 dt: 약 0.4초) 동안 10개의 제어값(control1 ~ control 10)을 주입 후 결과에 대해 cost 계산
-4. 600개의 샘플 중 exp(-cost/lambda) 를 통해 최적의 제어값 `Golden_t_(T,S)` 샘플링
-5. 10프레임에 대해 cost 계산 한 `golden_t_(T,S)`를 `t시점`의 제어값으로 지정
-6. 1번으로 return: `t+1` 시점 state + `warm-start`(이전 frame 의 golden_(T,S) 근처에서 `golden_t+1_(T,S)`를 탐색 )
 
 
 
@@ -194,7 +227,11 @@ MPC 방법 시도 & 실패 정리: [MPC2MPPI](../docs/%5B26-02-16%5D_mpc2mppi.md
 
 
 
-### Stage 1 : MPPI (정답값 데이터 생성)
+### Stage 1 : MPPI (정답값 데이터 생성: Genesis Car Data)
+#### MPPI란?
+Model Predictive Path Integral 으로, 샘플링 기반의 모델 예측 제어(MPC) 기법으로, 여러 경로를 확률적으로 샘플링하여 최적의 제어 입력을 도출하는 알고리즘
+
+#### 의의
 > NN(MLP)를 학습하기 위한 Genesis Engine과 GPU를 사용한 정답 데이터 생성과정
 
 * `수학/물리적으로 feasible 한 데이터` 생성 : Genesis Engine 을 거쳐 나온 데이터
@@ -202,15 +239,19 @@ MPC 방법 시도 & 실패 정리: [MPC2MPPI](../docs/%5B26-02-16%5D_mpc2mppi.md
 
 *  `GPU`의 병렬 연산 능력을 활용하여 수백개의 가상 시나리오를 동시에 `시뮬레이션(Genesis Engine)`하고 확률적 샘플링을 통해 가장 결과가 좋은 시나리오(데이터)를 선택 
 
+### 원리
 #### for every Frame(Receding Horizon : 10 horizon)  
   ![](../res/0316/mppi.png)
-#### for every frame
+
 1. 600개의 병렬환경 생성 (`t 시점`)
 2. 600개의 환경마다 perturbation 을 주어 서로 다른 제어값 Control(T,S) 세트 생성
 3. 10 horizon(10 dt: 약 0.4초) 동안 10개의 제어값(control1 ~ control 10)을 주입 후 결과에 대해 cost 계산
 4. 600개의 샘플 중 exp(-cost/lambda) 를 통해 최적의 제어값 `Golden_t_(T,S)` 샘플링
 5. 10프레임에 대해 cost 계산 한 `golden_t_(T,S)`를 `t시점`의 제어값으로 지정
 6. 1번으로 return: `t+1` 시점 state + `warm-start`(이전 frame 의 golden_(T,S) 근처에서 `golden_t+1_(T,S)`를 탐색 )
+
+#### MPPI cost
+
 
 #### MPPI 가중치
 | 가중치 | 설명 |
@@ -237,9 +278,10 @@ MPPI insight & trouble shooting docs : [MPPI_troubleshooting](https://github.com
 
 ---
 
-#### 추출된 Golden Data CSV
+#### 추출된 Golden Data CSV (Blender Car data)
 * 최대한 많은 동역학 state를 포함하고자 raw 한 데이터들을 최대한 많이 추출
 * MLP input sheet 가 아님
+* `Blender Car`의 움직임을 모방한 `genesis`에서의 data
 
 | 분류 | 컬럼명 | 단위/타입 | 설명 | 
 | :--- | :--- | :--- | :--- | 
@@ -304,7 +346,7 @@ $$\mathbf{X} = [\underbrace{ v_{current}, k_{current}}_{\text{Current State (2D)
 * 학습 시 train set에만 노이즈 주입하여, 모델이 더 많은 상황을 경험하도록 함(데이터 증강 + 반전)
 
 
-#### state sheet(input : 25dim)
+#### MLP input State sheet(input : 25dim)
 * MLP input state 정리
 
 
@@ -344,7 +386,7 @@ $$\mathbf{y} = \begin{bmatrix} T \\ S \end{bmatrix} = \begin{bmatrix} T_{golden}
 | :--- | :--- | :--- | 
 | [![blender](../res/0316/blender.png)](https://github.com/user-attachments/assets/94549c51-5cd4-41d1-a187-f1262d5e1e53)  | [![path_new2](../res/0222/path_new2.png)](https://github.com/user-attachments/assets/14f37b64-8207-4769-9267-a65f0ed32e82) |  [![curve_mlp](../res/0222/curve1.png)](https://github.com/user-attachments/assets/e031fadc-0774-46c6-a9dc-267cfccdd9be)|
 
-주행 결과 : [BC Inverse Mapper](https://github.com/i1uvmango/Genesis_ai_graphicstudy/blob/main/car_test/docs/%5B26-03-05%5D_BC_inverse_mappper.md)
+주행 결과 정리 docs : [BC Inverse Mapper](https://github.com/i1uvmango/Genesis_ai_graphicstudy/blob/main/car_test/docs/%5B26-03-05%5D_BC_inverse_mappper.md)
 
 ### Generalization Test
 (사진 클릭 시 영상 실행)
@@ -358,7 +400,7 @@ $$\mathbf{y} = \begin{bmatrix} T \\ S \end{bmatrix} = \begin{bmatrix} T_{golden}
 
 > "학습되지 않은 임의의 경로에서도 안정적인 주행을 보인 것은, 본 모델이 특정 경로를 암기한 것이 아니라 [상태 오차 $\rightarrow$ 최적 제어값]으로 이어지는 물리적 인과관계(Physics Intuition)를 학습했음을 시사한다."
 
-for Inverse Dynamics details : [BC Inverse Mapper](https://github.com/i1uvmango/Genesis_ai_graphicstudy/blob/main/car_test/docs/%5B26-03-05%5D_BC_inverse_mappper.md)
+결과 정리 docs : [BC Inverse Mapper](https://github.com/i1uvmango/Genesis_ai_graphicstudy/blob/main/car_test/docs/%5B26-03-05%5D_BC_inverse_mappper.md)
 
 ---
 ppt : [Blender2Genesis_Sim2Sim_Calibration](https://github.com/i1uvmango/Genesis_ai_graphicstudy/blob/main/car_test/docs/Blender2Genesis_Sim2Sim_Calibration.pdf)

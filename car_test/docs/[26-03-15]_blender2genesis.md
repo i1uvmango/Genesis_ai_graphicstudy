@@ -258,6 +258,7 @@ MPC 방법 시도 & 실패 정리: [MPC2MPPI](../docs/%5B26-02-16%5D_mpc2mppi.md
 #### MPPI cost
 
 
+
 $$
 J = \sum_{h=1}^{H} \left[
 \begin{aligned}

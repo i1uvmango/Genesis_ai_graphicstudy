@@ -4,7 +4,7 @@
 
 > 본 연구는 자율주행 차량의 Real2Sim &rarr; Real2Sim 확장성을 확보하기 위해, Sim2Sim: 시뮬레이션 환경 간의 제어 최적화 및 매핑 기술을 다룹니다
 
-
+## 1. 연구 배경 및 목표
 ## Sim2Real Calibration : 최종 목표
 ![](../res/0316/sim2real.png)
 
@@ -38,7 +38,7 @@ $RealWorld$ &rarr; $Genesis$
 > Real-World 의 데이터를 직접 얻어오는게 제한되어 Sim2Sim calibration 을 진행했고, 이 단계가 된다면 같은 파이프라인으로  Real2Sim calibration 도 적용 가능함
 
 
-
+## 2. 시뮬레이션 환경
 ## Genesis (Simulation)
 
 ![](../res/0316/genesis.png)
@@ -107,6 +107,7 @@ https://github.com/user-attachments/assets/e0609422-8a9c-4695-98d5-4110debb4fde
 ### 좌표계 설정
 
 $R_{genesis} = M \cdot R_{blender} \cdot M^{-1}$
+
 * Basis Transformation 을 통해 데이터 손실 없이 좌표계 변환
 
 
@@ -136,13 +137,16 @@ Blender의 차체를 로봇 설계에 쓰이는 URDF(Unified Robot Description F
 * **Wheel Joints**: 뒷바퀴의 구동을 위해 각속도 제어가 가능한 continuous 타입으로 정의
 * 물리적 상호작용: 바퀴 링크의 마찰 계수(Friction) 등을 설정
 
-#### Mesh 입히기
-| Blender | 초기 urdf | meshed URDF |
+#### URDF Development
+| Blender | 초기 urdf | developed URDF |
 | - | - | - |
 | ![](../res/0316/blender_car.gif) |![car_image](../res/car_img.png) | ![](../res/0316/car.png) |
 
+---
 
 
+
+## 3. Sim2Sim Calibration
 ## Behavior Cloning (행동 모사)
 
 > Blender 에서 움직이는 차량의 데이터를 추출하여, Genesis 에서 동일한 움직임 구현
@@ -167,6 +171,7 @@ minmax Scaler 사용
 
 동역학적 정보를 `Throttle` , `Steer` 에 녹여내는 것이 중요함
 
+---
 
 
 ### Data Extraction & Processing
@@ -177,7 +182,7 @@ $$R_{genesis} = M \cdot R_{blender} \cdot M^{-1}$$
 $$Blender to Genesis$$
 * 모든 데이터는 다음 basis transformation 을 통해 좌표계 일치
 
-#### Blender Car Data
+### Blender Car Data
 | 분류|변수명| 단위| 설명|
 | - | - | - | - |
 |기본 정보|frame|-|시뮬레이션 프레임 번호|
@@ -200,8 +205,8 @@ $$Blender to Genesis$$
 
 ----
 
-
-## Inverse Dynamics
+## 4.
+## Blackbox Genesis Engine
 
 
 ![](../res/0316/pipeline.png)
@@ -217,18 +222,12 @@ Genesis World 에서 경로를 완벽하게 추종하는 데이터(**MPPI**)를 
 
 * Genesis Solver 는 여러가지가 있지만 동역학을 계산하는 rigid solver 는 미분이 지원되지 않음
 
-### MPPI 란?
-Model Predictive Path Integral 으로, 샘플링 기반의 모델 예측 제어(MPC) 기법으로, 여러 경로를 확률적으로 샘플링하여 최적의 제어 입력을 도출하는 알고리즘
+---
 
 
 
-
-MPC 방법 시도 & 실패 정리: [MPC2MPPI](../docs/%5B26-02-16%5D_mpc2mppi.md)
-
-
-
-### Stage 1 : MPPI (정답값 데이터 생성: Genesis Car Data)
-#### MPPI란?
+## Stage 1 : MPPI (정답값 데이터 생성: Genesis Car Data)
+### MPPI란?
 Model Predictive Path Integral 으로, 샘플링 기반의 모델 예측 제어(MPC) 기법으로, 여러 경로를 확률적으로 샘플링하여 최적의 제어 입력을 도출하는 알고리즘
 
 #### 의의
@@ -238,6 +237,8 @@ Model Predictive Path Integral 으로, 샘플링 기반의 모델 예측 제어(
     * Genesis Engine 은 관성/질량 등 동역학 state 반영하는 물리 엔진
 
 *  `GPU`의 병렬 연산 능력을 활용하여 수백개의 가상 시나리오를 동시에 `시뮬레이션(Genesis Engine)`하고 확률적 샘플링을 통해 가장 결과가 좋은 시나리오(데이터)를 선택 
+
+MPC 방법 시도 & 실패 정리: [MPC2MPPI](../docs/%5B26-02-16%5D_mpc2mppi.md)
 
 ### 원리
 #### for every Frame(Receding Horizon : 10 horizon)  
@@ -252,6 +253,7 @@ Model Predictive Path Integral 으로, 샘플링 기반의 모델 예측 제어(
 
 #### MPPI cost
 
+?????
 
 #### MPPI 가중치
 | 가중치 | 설명 |
@@ -279,8 +281,10 @@ MPPI insight & trouble shooting docs : [MPPI_troubleshooting](https://github.com
 ---
 
 #### 추출된 Golden Data CSV (Blender Car data)
+> 전처리/가공 전 raw data 
+
 * 최대한 많은 동역학 state를 포함하고자 raw 한 데이터들을 최대한 많이 추출
-* MLP input sheet 가 아님
+
 * `Blender Car`의 움직임을 모방한 `genesis`에서의 data
 
 | 분류 | 컬럼명 | 단위/타입 | 설명 | 
@@ -303,25 +307,26 @@ MPPI insight & trouble shooting docs : [MPPI_troubleshooting](https://github.com
 | | k_target | 1/m | Blender의 목표 곡률 | Blender CSV |
 
 #### Q&A
-* 그냥 Blender 의 데이터를 쓰면 되지 않나? 
+* 그냥 Blender 의 데이터를 학습하면 되지 않나? 
     * Blender 의 주행 데이터는 Genesis 엔진에서 작동하지 않음
     * MPPI를 통해 Blender 주행과 동일한 주행을 Genesis 엔진에서 직접 계산하여 데이터를 뽑아내는 것
 
-* Golden data에 T*,S* 만 있으면 되지 않나?
-    * MLP로 지도학습 하려면 저런 동역학 state를 넣어주면 T*, S* 가 나온다를 MLP가 학습해야함
+* Golden data(MPPI 통해 도출된 데이터)에 optimized(Throttle, Steer) 만 있으면 되지 않나?
+    * MLP로 지도학습 하려면 저런 동역학 state를 넣어주면 (Throttle, Steer) 가 나온다를 MLP가 학습해야함
 
 * 그럼 Blender 의 csv는 왜 필요한가?
     * MPPI 는 컴퓨팅 비용이 매우 높음 &rarr; MLP로 Inverse Dynamics 를 구현
-    * Blender CSV의 주행이 Genesis 에선 다음과 같이 작동한다(Blender CSV &rarr; Genesis CSV)
+    * Blender data와 Golden Data를 같이 mlp input으로 넣어줘서 전이 관계를 학습(**Blender CSV의 주행이 Genesis 에선 다음과 같이 작동한다** : Blender CSV &rarr; Genesis CSV)
+
+---
 
 
-### Stage 2: MLP 학습 (Blender2Genesis Mapper)
-
+## Stage 2: MLP 학습 (Blender2Genesis Mapper)
 
 
 > 시간/비용이 높은 MPPI trasformation 대신, MLP를 통해 Real-time 으로 Blender를 넣었을때 Genesis World 에서 동일한 움직임을 구현하자
 
-* MLP : Real-time Blender2Genesis Mapper 를 differentiable 한 MLP로 근사함  
+* MLP : Real-time Blender2Genesis Mapper 를 `differentiable` 한 MLP로 `근사`함  
 * method : Supervised Learning  
 
 
@@ -333,7 +338,7 @@ Pipeline
 
 > 8개의 서로 다른 주행 데이터를 data augmentation(좌우 반전, 노이즈 증강)하여 학습시킴 (3k CSV lines)
 
-#### Input Features (25 Dim)
+### Input Features (25 Dim)
 
 
 $$\mathbf{X} = [\underbrace{ v_{current}, k_{current}}_{\text{Current State (2D)}}, \underbrace{\Delta v, CTE, HE, }_{\text{Feedback (3D)}}  \underbrace{v_{long\_bl, t+1}, k_{bl, t+1}, \dots, v_{long\_bl, t+10}, k_{bl, t+10}}_{\text{Lookahead (20D)}}]$$
@@ -346,7 +351,7 @@ $$\mathbf{X} = [\underbrace{ v_{current}, k_{current}}_{\text{Current State (2D)
 * 학습 시 train set에만 노이즈 주입하여, 모델이 더 많은 상황을 경험하도록 함(데이터 증강 + 반전)
 
 
-#### MLP input State sheet(input : 25dim)
+### MLP input State sheet(input : 25dim)
 * MLP input state 정리
 
 
@@ -371,15 +376,24 @@ $$\mathbf{X} = [\underbrace{ v_{current}, k_{current}}_{\text{Current State (2D)
 
 ### Output
 
-$$\mathbf{y} = \begin{bmatrix} T \\ S \end{bmatrix} = \begin{bmatrix} T_{golden} \\ S_{golden} \end{bmatrix}$$
+$$\mathbf{Y} = \begin{bmatrix} T \\ S \end{bmatrix} = \begin{bmatrix} T_{golden} \\ S_{golden} \end{bmatrix}$$
 
 * `Tanh()`를 사용하여 Throttle, Steering 모두 `[-1, 1]` 범위로 출력
 * Dynamic States &rarr; (T,S) mapping
 
 > 이제 Blender의 주행 데이터를 넣었을때 해당 움직임을 MPPI 계산 없이, `Real-Time`으로 Genesis World 에서 구현이 됨
 
+---
 
-## 실행 및 추론 (Inference)
+
+## Stage 3: 실행 및 추론 (Inference)
+
+### 실행 흐름
+1. Blender CSV(state + action)를 입력
+2. MLP model 을 통한 `state` + `action`의 `Real-time` convert
+3. Genesis World 에서 동일한 움직임 구현
+
+### Inference Samples
 (사진 클릭 시 영상 실행)
 
 | Blender | MPPI | Inverse Dynamics Inference(Genesis) |
@@ -388,7 +402,7 @@ $$\mathbf{y} = \begin{bmatrix} T \\ S \end{bmatrix} = \begin{bmatrix} T_{golden}
 
 주행 결과 정리 docs : [BC Inverse Mapper](https://github.com/i1uvmango/Genesis_ai_graphicstudy/blob/main/car_test/docs/%5B26-03-05%5D_BC_inverse_mappper.md)
 
-### Generalization Test
+### Generalization Test (미학습 경로 추론)
 (사진 클릭 시 영상 실행)
 
 | 미학습 경로1 | 미학습 경로2 |
@@ -396,7 +410,8 @@ $$\mathbf{y} = \begin{bmatrix} T \\ S \end{bmatrix} = \begin{bmatrix} T_{golden}
 |[![new1](../res/0222/new1.png)](https://github.com/user-attachments/assets/1897e0ea-6dc8-4ebf-bfb7-7b46bf2e321d) |[![new2](../res/0222/new2.png)](https://github.com/user-attachments/assets/63a83b3d-1214-4fb0-9b9a-8dc2beb2fbee) |
 
 * 일반화 성능 평가를 위해 학습하지 않은 경로를 input 해봄
-* 곡률이 많을 수록 MPPI 최적화에 어려움이 많았음 &rarr; 일반화 검증시 어려운 경로 사용
+* 곡률이 많을 수록 MPPI 최적화(정답값 데이터 생성)에 컴퓨팅 비용이 높았음
+* 어려운 미학습 경로도 안정적이게 잘 추론하는 성능을 보임
 
 > "학습되지 않은 임의의 경로에서도 안정적인 주행을 보인 것은, 본 모델이 특정 경로를 암기한 것이 아니라 [상태 오차 $\rightarrow$ 최적 제어값]으로 이어지는 물리적 인과관계(Physics Intuition)를 학습했음을 시사한다."
 

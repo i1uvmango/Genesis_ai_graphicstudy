@@ -259,13 +259,16 @@ MPC 방법 시도 & 실패 정리: [MPC2MPPI](../docs/%5B26-02-16%5D_mpc2mppi.md
 
 
 $$
+J = \sum_{h=1}^{H} \left( 
 \begin{aligned}
-J = \sum_{h=1}^{H} \left( \rule{0pt}{1.2em} \right. & \underbrace{w_{v} |v_h - v_{\text{ref},h}| + w_{\kappa} |\kappa_h - \kappa_{\text{ref},h}|}_{\text{State Tracking}} \\
+& \underbrace{w_{v} |v_h - v_{\text{ref},h}| + w_{\kappa} |\kappa_h - \kappa_{\text{ref},h}|}_{\text{State Tracking}} \\
 & + \underbrace{w_{\text{cte}} |\text{CTE}_h| + w_{\text{he}} |\Delta \psi_h|}_{\text{Path Following Error}} \\
 & + \underbrace{w_{a} |a_h - a_{\text{ref},h}|}_{\text{Dynamics Consistency}} \\
-& + \left. \underbrace{w_{\Delta u} \|u_h - u_{h-1}\| + w_{\text{ff}} \|u_h - u_{\text{ref},h}\|}_{\text{Control Smoothness \& Bias}} \right)
-\end{aligned}
+& + \underbrace{w_{\Delta u} \|u_h - u_{h-1}\| + w_{\text{ff}} \|u_h - u_{\text{ref},h}\|}_{\text{Control Smoothness \& Bias}} 
+\end{aligned} 
+\right)
 $$
+
 
 * $\sum_{h=1}^{H}$ (Summation): MPPI는 현재 한 점이 아니라 **미래의 10단계($H=10$)**를 미리 가보고 그 합산 점수를 매기는 방식
 * $w_{v} |v_h - v_{\text{ref},h}| + w_{\kappa} |\kappa_h - \kappa_{\text{ref},h}|$: 속도와 곡률 오차를 줄여 원본 데이터와 최대한 비슷하게 따라가도록 함

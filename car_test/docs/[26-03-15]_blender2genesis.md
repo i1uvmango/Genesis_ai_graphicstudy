@@ -77,22 +77,22 @@ https://github.com/user-attachments/assets/e0609422-8a9c-4695-98d5-4110debb4fde
 | 설명 | 이상적 주행, 수학적 일치 | 오차 존재, 물리적 현상 |
 
 
-#### Blender : UKMAC (Unicycle Kinematics Model)
+### Kinematics Model : Blender (UKMAC)
 * acceleration
 * curvature
     > 위 두개의 변수로 차량의 움직임을 수학적으로 완벽하게 모사할 수 있지만, 실제 차량의 **slip 현상** 마찰력, 원심력 등 동역학적 상태를 고려하지 못함
 
 
-#### Genesis : Dynamics (물리적 현상)
+### Dynamics Model : Genesis (물리적 현상)
 ![](../res/0316/state.png)
 * velocity
 * angular velocity
 * yaw rate
 * slip angle
 * friction
-    > 많은 동역학적 state 존재
+> 많은 동역학적 state 존재
 
-* 초기 두 시뮬레이션을 연결하는 state로 `acceleration`, `curvature` 를 사용하려 했지만, Genesis 와 Blender 의 움직임 불일치에서 인사이트를 얻어 여러 동역학 데이터 사용
+* 초기 두 시뮬레이션을 연결하는 state로 `acceleration`, `curvature` 를 사용하려 했지만, Genesis 와 Blender 의 움직임 불일치에서 인사이트를 얻어 여러 **동역학 데이터** 사용
 
 
 ## Environment Synchronization
@@ -106,7 +106,7 @@ https://github.com/user-attachments/assets/e0609422-8a9c-4695-98d5-4110debb4fde
 
 ### 좌표계 설정
 
-$$R_{genesis} = M \cdot R_{blender} \cdot M^{-1}$$
+$R_{genesis} = M \cdot R_{blender} \cdot M^{-1}$
 * Basis Transformation 을 통해 데이터 손실 없이 좌표계 변환
 
 

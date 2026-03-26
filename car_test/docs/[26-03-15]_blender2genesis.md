@@ -253,7 +253,21 @@ MPC 방법 시도 & 실패 정리: [MPC2MPPI](../docs/%5B26-02-16%5D_mpc2mppi.md
 
 #### MPPI cost
 
-?????
+
+$$J = \sum_{h=1}^{H} \left(
+\begin{aligned}
+& \underbrace{w_{v} |v_h - v_{\text{ref},h}| + w_{\kappa} |\kappa_h - \kappa_{\text{ref},h}|}_{\text{State Tracking}} \\
+& + \underbrace{w_{\text{cte}} |\text{CTE}_h| + w_{\text{he}} |\Delta \psi_h|}_{\text{Path Following Error}} \\
+& + \underbrace{w_{a} |a_h - a_{\text{ref},h}|}_{\text{Dynamics Consistency}} \\
+& + \underbrace{w_{\Delta u} \|u_h - u_{h-1}\| + w_{\text{ff}} \|u_h - u_{\text{ref},h}\|}_{\text{Control Smoothness \& Bias}}
+\end{aligned}
+\right)$$
+
+* $\sum_{h=1}^{H}$ (Summation): MPPI는 현재 한 점이 아니라 **미래의 10단계($H=10$)**를 미리 가보고 그 합산 점수를 매기는 방식
+* $w_{v} |v_h - v_{\text{ref},h}| + w_{\kappa} |\kappa_h - \kappa_{\text{ref},h}|$: 속도와 곡률 오차를 줄여 원본 데이터와 최대한 비슷하게 따라가도록 함
+* $w_{\text{cte}} |\text{CTE}_h| + w_{\text{he}} |\Delta \psi_h|$: 경로 이탈(CTE)과 방향 오차를 줄여 경로를 잘 추종하도록 함
+* $w_{a} |a_h - a_{\text{ref},h}|$: 가속도 오차를 줄여 물리적으로 자연스러운 움직임을 유도
+* $w_{\Delta u} \|u_h - u_{h-1}\| + w_{\text{ff}} \|u_h - u_{\text{ref},h}\|$: 제어값의 급격한 변화를 막고, 원본 데이터의 제어값을 참고하여 부드럽고 일관된 제어를 유도
 
 #### MPPI 가중치
 | 가중치 | 설명 |
@@ -280,7 +294,7 @@ MPPI insight & trouble shooting docs : [MPPI_troubleshooting](https://github.com
 
 ---
 
-#### 추출된 Golden Data CSV (Blender Car data)
+### 추출된 Golden Data CSV (Blender Car data)
 > 전처리/가공 전 raw data 
 
 * 최대한 많은 동역학 state를 포함하고자 raw 한 데이터들을 최대한 많이 추출
@@ -330,7 +344,7 @@ MPPI insight & trouble shooting docs : [MPPI_troubleshooting](https://github.com
 * method : Supervised Learning  
 
 
-Pipeline
+### Pipeline
 ![](../res/0316/inverse_mapping.png)
 * Input : Blender CSV , Golden CSV
 * MLP : Inverse Dynamics Supervised Learning
@@ -344,7 +358,7 @@ Pipeline
 $$\mathbf{X} = [\underbrace{ v_{current}, k_{current}}_{\text{Current State (2D)}}, \underbrace{\Delta v, CTE, HE, }_{\text{Feedback (3D)}}  \underbrace{v_{long\_bl, t+1}, k_{bl, t+1}, \dots, v_{long\_bl, t+10}, k_{bl, t+10}}_{\text{Lookahead (20D)}}]$$
 
 
-#### Insight
+#### 인사이트
 * 정보 압축 및 학습 안정성을 위해 `delta`값 사용
 * 스스로 오차를 고칠 수 있도록 `feedback` 항 명시적으로 부여
 * MPPI 의 설계와 동일하게 미래 10 frame의 `(vel, kappa)`을 주어 미래 정보 고려한 제어를 할 수 있도록 함

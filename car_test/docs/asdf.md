@@ -371,8 +371,10 @@ MLP Inference  (실시간)
 | Blender (Reference) | MPPI (정답값) | MLP Inference (실시간 추론) |
 |---|---|---|
 | [![blender](../res/0316/blender.png)](https://github.com/user-attachments/assets/94549c51-5cd4-41d1-a187-f1262d5e1e53) | [![mppi](../res/0222/path_new2.png)](https://github.com/user-attachments/assets/14f37b64-8207-4769-9267-a65f0ed32e82) | [![mlp](../res/0222/curve1.png)](https://github.com/user-attachments/assets/e031fadc-0774-46c6-a9dc-267cfccdd9be) |
+* 이미지 클릭 시 영상 재생
 
 MLP는 MPPI의 주행 품질을 실시간으로 재현하였다.
+
 
 ### 일반화 검증: 미학습 경로
 
@@ -380,9 +382,13 @@ MLP는 MPPI의 주행 품질을 실시간으로 재현하였다.
 
 * 곡률이 클수록 MPPI 최적화가 어려웠던 걸 고려하여 일반화 성능 테스트 시 어려운 경로 테스트
 
+
 | 미학습 경로 1 | 미학습 경로 2 |
 |---|---|
 | [![new1](../res/0222/new1.png)](https://github.com/user-attachments/assets/1897e0ea-6dc8-4ebf-bfb7-7b46bf2e321d) | [![new2](../res/0222/new2.png)](https://github.com/user-attachments/assets/63a83b3d-1214-4fb0-9b9a-8dc2beb2fbee) |
+* 이미지 클릭 시 영상 재생
+
+
 
 **핵심 관찰**
 

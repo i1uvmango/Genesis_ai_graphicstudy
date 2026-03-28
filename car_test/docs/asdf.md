@@ -378,6 +378,8 @@ MLP는 MPPI의 주행 품질을 실시간으로 재현하였다.
 
 학습에 사용하지 않은 새로운 경로를 입력하여 일반화 성능을 검증한다.
 
+* 곡률이 클수록 MPPI 최적화가 어려웠던 걸 고려하여 일반화 성능 테스트 시 어려운 경로 테스트
+
 | 미학습 경로 1 | 미학습 경로 2 |
 |---|---|
 | [![new1](../res/0222/new1.png)](https://github.com/user-attachments/assets/1897e0ea-6dc8-4ebf-bfb7-7b46bf2e321d) | [![new2](../res/0222/new2.png)](https://github.com/user-attachments/assets/63a83b3d-1214-4fb0-9b9a-8dc2beb2fbee) |
@@ -402,7 +404,6 @@ MLP는 MPPI의 주행 품질을 실시간으로 재현하였다.
 |---|---|---|
 | **MPPI** | Genesis 물리 엔진 내 최적 제어 탐색 | 물리적으로 feasible한 정답 데이터 생성 |
 | **MLP (25D → 2D)** | MPPI를 실시간으로 근사 | 미학습 경로에서도 안정적 궤적 재현 |
-
 | **Feedback 항** | 오차 자기 교정 | 동역학적 누적 오차 억제 |
 | **Lookahead 항** | 미래 경로 사전 인지 | 고속 코너링에서의 조기 제어 가능 |
 

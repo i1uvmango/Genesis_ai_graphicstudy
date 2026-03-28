@@ -432,6 +432,7 @@ MLP는 MPPI의 주행 품질을 실시간으로 재현하였다.
 ---
 ### 향후 연구
 > Real World 의 데이터를 받아서 Real2Sim Calibration 진행 → Sim2Real 의 Policy Transfer 완성
+* World Model 의 base model 로 적용
 
 ## 참고 자료
 

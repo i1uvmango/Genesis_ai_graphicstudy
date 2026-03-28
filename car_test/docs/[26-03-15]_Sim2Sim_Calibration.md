@@ -13,7 +13,8 @@
 5. [Stage 1: MPPI — 정답 데이터 생성](#5-stage-1-mppi--정답-데이터-생성)
 6. [Stage 2: MLP — Inverse Dynamics Mapper 학습](#6-stage-2-mlp--inverse-dynamics-mapper-학습)
 7. [Stage 3: 추론 및 일반화 검증](#7-stage-3-추론-및-일반화-검증)
-8. [결론 및 향후 연구](#8-결론-및-향후-연구)
+8. [T,S to T,S transfer vs Dynamic State to T,S transfer의 차이점 ](#8-discussion-ts-control-transfer-vs-inverse-dynamics-mapping)
+9. [결론 및 향후 연구](#9-결론-및-향후-연구)
 
 ---
 
@@ -404,7 +405,7 @@ MLP는 MPPI의 주행 품질을 실시간으로 재현하였다.
 
 ---
 
-## 8. Discussion: (T,S) Control Transfer vs Inverse Dynamics Mapping
+## 8. Discussion: (T,S) Control Transfer vs Dynamic State Transfer(본 연구 방식)
 
 
 (T,S) Control Transfer 방식

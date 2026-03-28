@@ -430,6 +430,8 @@ MLP는 MPPI의 주행 품질을 실시간으로 재현하였다.
 > Blender의 T,S만으로는 이 정보를 담을 수 없기 때문에, 동역학 state가 필수적이다.
 
 ---
+### 향후 연구
+> Real World 의 데이터를 받아서 Real2Sim Calibration 진행 → Sim2Real 의 Policy Transfer 완성
 
 ## 참고 자료
 

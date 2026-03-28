@@ -404,20 +404,28 @@ MLP는 MPPI의 주행 품질을 실시간으로 재현하였다.
 
 ---
 
-## 8. 결론 및 향후 연구
+## 8. Discussion: (T,S) Control Transfer vs Inverse Dynamics Mapping
 
-### 요약
 
-본 연구는 서로 다른 물리 모델을 가진 두 시뮬레이터, Blender(Kinematics)와 Genesis(Dynamics) 사이에서 **동역학적 주행 궤적을 전이**하는 Inverse Dynamics Mapper를 설계·구현하였다.
+(T,S) Control Transfer 방식
+```
+Blender raw state
+    │
+    ▼ (Unicycle Kinematics로 먼저 압축)
+(T, S)_blender   ← 이미 정보 손실 발생
+    │
+    ▼ MLP
+(T, S)_genesis
+```
 
-| 구성 요소 | 역할 | 결과 |
-|---|---|---|
-| **MPPI** | Genesis 물리 엔진 내 최적 제어 탐색 | 물리적으로 feasible한 정답 데이터 생성 |
-| **MLP (25D → 2D)** | MPPI를 실시간으로 근사 | 미학습 경로에서도 안정적 궤적 재현 |
-| **Feedback 항** | 오차 자기 교정 | 동역학적 누적 오차 억제 |
-| **Lookahead 항** | 미래 경로 사전 인지 | 고속 코너링에서의 조기 제어 가능 |
-
-### (T,S) Control Transfer vs 본 연구 방식
+본 연구 방식
+```
+Blender raw state (v, κ, CTE, HE, Δv, ...)
+    │
+    │ 압축 없이 그대로
+    ▼ MLP가 직접 인코딩
+(T*, S*)_genesis
+```
 
 | | **(T,S) Control Transfer** | **본 연구 (Inverse Dynamics Mapping)** |
 |---|---|---|
@@ -429,14 +437,42 @@ MLP는 MPPI의 주행 품질을 실시간으로 재현하였다.
 | **일반화** | blender의 정보 손실 | 동역학 정보를 모두 보존 |
 
 > **(T,S)는 두 방식 모두 동일한 출력 인터페이스다.**  
-> 차이는 그 (T,S)를 결정하는 **입력 정보**에 있다.  
-> (T,S) Control Transfer는 Blender의 제어값 자체가 정보의 전부지만, 본 연구는 **"Genesis가 지금 얼마나 이탈했는지, 앞으로 어떻게 가야 하는지"** 라는 물리적 맥락을 입력으로 삼는다.  
-> Blender의 T,S만으로는 이 정보를 담을 수 없기 때문에, 동역학 state가 필수적이다.
+> 차이는 그 (T,S)를 결정하는 **입력 정보의 품질**에 있다.  
+> (T,S) Control Transfer는 Unicycle Kinematics가 이미 압축한 결과물을 입력으로 받기 때문에, 압축 과정에서 버려진 동역학 정보(슬립, 관성, 원심력 등)를 복원할 수 없다.
+> 본 연구는 이 압축 단계를 제거하고, raw 동역학 state를 MLP가 직접 최적 제어로 인코딩함으로써 정보 손실 없는 Transfer를 달성한다.
 
 ---
+## 9. 결론 및 향후 연구
+
+### 결론
+
+본 연구는 운동학(Kinematics) 기반 시뮬레이터 Blender와 동역학(Dynamics) 기반 시뮬레이터 Genesis 사이에서, **동역학적 주행 궤적을 실시간으로 전이**하는 Inverse Dynamics Mapper를 설계·구현하였다.
+
+| 구성 요소 | 역할 | 결과 |
+|---|---|---|
+| **MPPI** | Non-differentiable Genesis 엔진 내 최적 제어 탐색 | 물리적으로 feasible한 정답 데이터 생성 |
+| **MLP (25D → 2D)** | MPPI를 실시간으로 근사하는 Differentiable Surrogate | 미학습 경로에서도 안정적 궤적 재현 |
+| **Feedback 항** | Genesis-Blender 간 오차 자기 교정 | 동역학적 누적 오차 억제 |
+| **Lookahead 항** | 미래 경로 사전 인지 | 고속 코너링에서의 선제적 제어 가능 |
+
+**일반화 성능이 의미하는 것**
+
+> 학습되지 않은 임의의 경로에서도 안정적 궤적 추종에 성공했다는 것은, 본 모델이 특정 경로를 암기한 것이 아님을 의미한다.  
+> 이는 MLP가 **[현재 물리 상태 + 오차 + 미래 경로] → 최적 제어**로 이어지는 **Physics Intuition**을 학습했음을 시사하며,  
+> 이 인과관계가 경로에 독립적으로 성립하기 때문에 미학습 경로에서도 일반화된다.
+
+**Sim2Sim → Real2Sim 확장 가능성**
+
+> 본 파이프라인에서 Blender는 Real World의 대리자(Surrogate)로 기능했다.  
+> Blender CSV 자리에 실제 차량 센서 데이터(IMU, Encoder 등)를 치환하면,  
+> **동일한 파이프라인으로 Real2Sim Calibration이 가능**하며, 이는 Sim2Real Policy Transfer의 직접적인 기반이 된다.
+
 ### 향후 연구
-> Real World 의 데이터를 받아서 Real2Sim Calibration 진행 → Sim2Real 의 Policy Transfer 완성
-* World Model 의 base model 로 적용
+
+* Real World 데이터를 입력으로 받아 Real2Sim Calibration 수행 → Sim2Real Policy Transfer 완성  
+* 본 Inverse Dynamics Mapper를 World Model의 base model로 확장 적용
+
+---
 
 ## 참고 자료
 

@@ -421,7 +421,7 @@ Blender raw state
 
 본 연구 방식
 ```
-Blender raw state (v, κ, CTE, HE, Δv, ...)
+Blender raw state (v, κ, CTE, HE, Δv, ...) --> Blender일 필요 없음
     │
     │ 압축 없이 그대로
     ▼ MLP가 직접 인코딩
@@ -440,7 +440,7 @@ Blender raw state (v, κ, CTE, HE, Δv, ...)
 > **(T,S)는 두 방식 모두 동일한 출력 인터페이스다.**  
 > 차이는 그 (T,S)를 결정하는 **입력 정보의 품질**에 있다.  
 > (T,S) Control Transfer는 Unicycle Kinematics가 이미 압축한 결과물을 입력으로 받기 때문에, 압축 과정에서 버려진 동역학 정보(슬립, 관성, 원심력 등)를 복원할 수 없다.
-> 본 연구는 이 압축 단계를 제거하고, raw 동역학 state를 MLP가 직접 최적 제어로 인코딩함으로써 정보 손실 없는 Transfer를 달성한다.
+> 본 연구는 이 압축 단계를 제거하고, raw 동역학 state를 MLP가 직접 최적 제어로 인코딩함으로써 정보 손실 없는 Transfer를 달성한다. 또한 굳이 Blender의 데이터가 아니더라도 주행 데이터만 있다면 Genesis 환경으로의 transfer 가 가능하다.
 
 ---
 ## 9. 결론 및 향후 연구

@@ -1,0 +1,42 @@
+학습가능한가? : differentiable한가?
+ -> ㅣㅇ걸 근사해서 학습가능한(diff) function으로 나눠야함 ->state 도 학습가능하도록 만들어야함 (a,k 였음) -> unicycle kinemetics
+
+state(input / output) 을 가지고 있으니 만들수있다
+
+
+
+2mlp : GANs 의 generator, discriminator 처럼 mlp의 역할을 나눔
+
+throttle 할때 min max scaler 사용
+
+
+원래: S,T 를 주었을때 정확한 mapping
+
+우리 : 경로 주행 데이터를 주었을때 mapping
+
+
+지면의 마찰
+
+========================
+솔버: 상태 + 힘 + 업데이트
+
+gpu optimzation 이 더 잘됨
+
+* 인터페이스 화 시키기 --->>> 내 역할
+
+* z축 실험
+** path 줬을때 10frame a,k 를 주었을때 a,k의 array 몇 tiestep으로 줬는지,
+st를 반환
+
+* 도로 random 하게 생성해서 데이터 늘리고 (도로 체계 고려해서, 차량은 바꾸지 않음) ---> 데이터 편향 강동욱 방법처럼 복원 추출 사용하기
+
+* elu 사용 이유를 틀렸던거같음 -> 이거 수정
+* normalizing :  moving average : 지그재그 steering 생각해봐 -> 그럼 꺾는동안엔 평균
+* adam 공부하기
+
+
+
+terrain type 이 따로있음 : genesis terrain type 을 따로 빼놨음
+카를라? 오픈소스 샘플
+* 당연히 env 바뀌면 그 구간은 mesh(friction) 바꿔줘야하고, 그리고 그 iteraction 의 계산방식을 max 냐 min이냐 multi 이냐 등 매 스텝 설정해야함
+* torque/mass/friction 계산방식 : 전장에서 총 맞았떠니 토크 -20% 감소 등 이런 상황-> 매 스텝 input parameter으로 해줘야한다

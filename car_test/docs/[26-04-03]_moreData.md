@@ -94,6 +94,7 @@ https://github.com/user-attachments/assets/f19ac26d-ada6-4c77-8048-b87507fd59fb
 https://github.com/user-attachments/assets/e3819f44-ef25-4540-a968-5b44221cf7e4
 
 * mppi 시도했지만 제대로 최적화가 되지 않음 
+* steering oscillation 원인: 메시 제어점 간 z 단차가 0.15~0.36m로 큼 → 차량이 경계 통과 시 충격
 * bounding box가 삼각형 형태만 지원 &rarr; 조금 더 잘게 쪼개서 정교하게 만들어봐야할 듯
 
 

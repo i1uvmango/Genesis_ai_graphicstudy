@@ -136,12 +136,14 @@ height field spacing=0.1m → 약 450×100 = 45,000 격자 생성
 
 
 ## MPPI Golden Data 주행
+* P03 fail 상태
+
 | | |
 |:---:|:---:|
 | **P01** | **P02** |
 | [![P01](../res/0404/p01_g.png)](https://github.com/user-attachments/assets/3d3ac954-8ea3-430d-8c7f-1b33e7c49816) | [![P02](../res/0404/p02_g.png)]() |
 | **P03** | **P04** |
-| [![P03](../res/0404/p03_g.png)]() | |
+| [![P03](../res/0404/p03_g.png)](https://github.com/user-attachments/assets/ca4374ee-5f09-40dd-98e4-81319a9eaabe) | |
 | **P05** | **P06** |
 | [![P05](../res/0404/p05_g.png)]() | [![P06](../res/0404/p05_g.png)](https://github.com/user-attachments/assets/b3995cfb-4b69-4582-90b7-c2a9c2a9f10b) |
 | **P07** | **P08** |

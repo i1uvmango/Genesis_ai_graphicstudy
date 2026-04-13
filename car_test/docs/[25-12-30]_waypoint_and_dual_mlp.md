@@ -12,7 +12,7 @@
 
 ### shuffle split
 
-1. shuffle split 으로 train/validation 을 같은 종류의 데이터로 train 하고 그걸 평가하는 것
+1. shuffle split 으로 train/validation 을 같은 종류의 데이터로 train 하고 그걸 평가하는 것 
 2. 이렇게 해도 되는가? 
     * 해도 된다. 현재까지는 시간의 순서에 따라서 val 데이터 선정
     * Shuffle Split을 통해, Validation Loss 가 암기형 모델이 아닌 일반화 모델로 

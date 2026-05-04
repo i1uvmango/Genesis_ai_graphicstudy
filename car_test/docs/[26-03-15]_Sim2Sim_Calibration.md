@@ -150,7 +150,7 @@ Blender 차체를 Genesis에서 구동하기 위해 URDF(Unified Robot Descripti
 
 | Blender 원본 | 초기 URDF | 최종 URDF |
 |---|---|---|
-| ![blender_car](../res/0316/blender_car.gif) | ![car_img](../res/car_img.png) | ![car_final](../res/0316/car.png) |
+| ![blender_car](../res/0316/blender_car.gif) | ![car_img](../res/1014/car_img.png) | ![car_final](../res/0316/car.png) |
 
 ---
 

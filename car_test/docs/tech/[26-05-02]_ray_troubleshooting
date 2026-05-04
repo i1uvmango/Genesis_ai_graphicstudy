@@ -1,0 +1,276 @@
+# Genesis Ray-Wheel 구현 기록
+
+## 목표
+CARLA 방식의 Ray-Wheel 충돌을 Genesis에서 구현.
+바퀴 cylinder collision 없이 Ray hit_distance만으로 접지 구현.
+
+---
+
+## 배경: 왜 Ray-Wheel인가?
+
+### 기존 방식 (gt_z)
+```
+바퀴(cylinder) ↔ terrain(heightfield) 충돌
+→ Genesis가 자동으로 충돌 계산
+→ 문제: heightfield 변환 오차, 해상도 제한, 느림
+```
+
+### Ray-Wheel 방식 (CARLA)
+```
+바퀴 collision 없음
+바퀴 위치에서 -z 방향으로 Ray 발사
+→ terrain까지 거리(hit_distance) 측정
+→ compression 계산 → spring force 수동 적용
+→ 장점: 원본 mesh 그대로, 빠름, imagination에서도 사용 가능
+```
+
+---
+
+## 핵심 개념
+
+### compression이란?
+```
+compression = tire_radius - hit_distance
+
+바퀴가 땅에 닿기 전:  hit_dist > tire_radius → compression < 0 → force 없음
+바퀴가 딱 닿는 순간:  hit_dist = tire_radius → compression = 0 → force = 0
+바퀴가 눌린 상태:     hit_dist < tire_radius → compression > 0 → 위로 밀어내는 force 발생
+```
+
+### spring force란?
+```
+땅이 바퀴를 밀어내는 힘.
+compression이 클수록 더 강하게 밀어올림.
+
+force = K × compression
+K = 스프링 상수 (클수록 딱딱한 땅)
+```
+
+### damper란?
+```
+진동을 억제하는 역할.
+차가 내려오는 속도에 비례해서 저항.
+
+force = K × compression - C × 속도
+C = 감쇠 계수
+```
+
+---
+
+## URDF 구조 변경
+
+### 기존 URDF vs Ray-Wheel URDF
+
+| 항목 | 기존 (test_v1_simple.urdf) | Ray-Wheel (test_v1_raywheel.urdf) |
+|------|---------------------------|-----------------------------------|
+| wheel collision | cylinder 있음 | 제거 |
+| suspension joint | prismatic (spring/damper) | fixed (고정) |
+| 서스펜션 역할 | Genesis 자동 처리 | Ray force가 대체 |
+
+### suspension을 fixed로 바꾼 이유
+```
+prismatic joint에 stiffness=0, damping=0 설정 시:
+  → 아무 저항 없는 자유 조인트
+  → 중력으로 바퀴가 무한정 늘어남
+  → 차체가 공중으로 올라가는 현상 발생
+
+fixed joint로 바꾸면:
+  → 바퀴가 차체에 고정
+  → Ray force만으로 서스펜션 역할
+```
+
+---
+
+## Genesis API 확인 결과
+
+### Lidar 센서
+```python
+# 작동하는 패턴 (확인됨)
+gs.sensors.Lidar(
+    pattern=gs.sensors.GridPattern(
+        resolution=1.0,
+        size=(0.001, 0.001),   # 극소 크기 → Ray 1개
+        direction=(0, 0, -1),  # -z 방향
+    ),
+    entity_idx=car.idx,
+    pos_offset=(1.35, 0.80, 0.34),  # suspension origin 위치
+    return_world_frame=False,
+)
+
+# distances shape: torch.Size([1, 1, 1]) = [n_envs, h, w]
+# n_envs=2000이면 (2000, 1, 1) → imagination 배치 지원 ✅
+```
+
+### Ray self-ignore
+```
+Lidar가 attach된 entity(차량 자신)는 자동으로 무시됨.
+→ Ray가 바퀴를 통과하고 terrain까지 거리를 정확히 측정.
+→ wheel collision 비활성화 없이도 정상 동작.
+```
+
+### apply_links_external_force
+```python
+# 올바른 사용법 (확인됨)
+links_idx = torch.tensor([l.idx for l in car.links], device='cuda')
+force_tensor = torch.zeros(len(links_idx), 3, device='cuda')
+
+# wheel link에 force 적용
+force_tensor[wheel_local_position, 2] = force_mag  # z방향
+
+scene.sim.rigid_solver.apply_links_external_force(
+    force=force_tensor,
+    links_idx=links_idx
+)
+
+# 주의: force_tensor shape = (len(links_idx), 3)
+#       link.idx는 global index → local position으로 변환 필요
+```
+
+---
+
+## 발견된 버그들
+
+### 버그 1: Genesis Lidar 다중 센서 캐시 오프셋
+```
+증상: Lidar 4개 동시 사용 시 3, 4번째가 항상 0.0 반환
+
+원인: genesis/engine/sensors/raycaster.py 내부
+      sensor_cache_offsets 누적합 계산 오류
+      올바른 값: [0, 4, 8, 12]
+      실제 값:   [0, 4, 4, 4, 4]  ← 누적이 아닌 고정값
+
+해결: raycaster.py 직접 패치
+      GENESIS_BUG_raycaster.md 참고
+```
+
+### 버그 2: link.idx global vs local 불일치
+```
+증상: force가 엉뚱한 link에 적용됨
+
+원인: link.idx는 global index (1~11)
+      force_tensor는 local index (0~10) 기준
+      → front_right_wheel.idx=11이 범위 초과
+
+해결:
+  links_idx = [l.idx for l in car.links]  # global idx 목록
+  wheel_local_position = links_idx.index(wheel_global_idx)
+  force_tensor[wheel_local_position, 2] = force_mag
+```
+
+### 버그 3: 첫 스텝 Lidar 미초기화
+```
+증상: step 0에서 distances = 0.0 반환
+
+원인: scene.build() 직후 첫 스텝에서
+      Lidar BVH가 아직 초기화 안 됨
+
+해결:
+  prev_d = [TIRE_RADIUS * 2] * 4  # 초기값: no-hit 상태
+  if hit_dist <= 1e-6:
+      hit_dist = prev_d[i]  # 이전값 유지
+  prev_d[i] = hit_dist
+```
+
+---
+
+## 안착 실패 원인들과 해결 과정
+
+### 실패 1: terrain 뚫음 (force=0)
+```
+원인: 낙하 속도가 빠를 때 damper 항이 spring 항을 압도
+      force = K×comp - C×vel_z
+      C×vel_z >> K×comp → force = 음수 → max(0) = 0
+
+해결: 낙하 시 damper 끄기 (one-way)
+      내려갈 때: force = K × compression (spring만)
+      올라갈 때: force = 0 (땅은 위로만 밂)
+```
+
+### 실패 2: 공중으로 폭발
+```
+원인: compression이 누적된 상태에서 C_ext 크면
+      올라갈 때 force = K×comp + C_ext×vel_z → 폭발
+
+해결: 올라갈 때 force = 0으로 완전 제거
+```
+
+### 실패 3: 진동 수렴 안 함
+```
+원인: C가 임계감쇠 C_critical보다 너무 작음
+      C_critical = 2 × sqrt(K × M_per_wheel)
+                 = 2 × sqrt(150000 × 300) ≈ 13416
+
+해결: C_comp를 임계값 근처로 설정
+```
+
+---
+
+## 최종 성공 파라미터
+
+```python
+TIRE_RADIUS = 0.358   # m (URDF에서 읽음)
+K_RAY       = 150000  # N/m (스프링 상수)
+C_COMP_RAY  = 5000    # N·s/m (낙하 시 감쇠)
+# C_EXT = 0 (올라갈 때 force=0)
+
+# 평형점 계산
+# 차량 총 질량 = 1290kg (base 1200 + steer×2 + wheel×4)
+# 바퀴당 중력 = 1290 × 9.81 / 4 = 3163N
+# comp_eq = 3163 / 150000 = 0.021m
+# spawn_z = -(TIRE_RADIUS - suspension_z) = -(0.358 - 0.34) = -0.018m
+```
+
+### force 계산 로직
+```python
+car_vel_z = float(car.get_vel()[env_idx, 2])
+
+if car_vel_z >= 0:        # 올라가는 중 → force 없음
+    force_mag = 0.0
+else:                     # 내려가는 중 → spring + damper
+    d_comp = -car_vel_z   # 양수
+    force_mag = max(0.0, K_RAY * compression - C_COMP_RAY * d_comp)
+```
+
+---
+
+## 안착 테스트 결과
+
+```
+z_mean  = -0.0046m  (이론 평형점 -0.018m 근처) ✅
+z_std   =  0.0062m  (< 0.01 안정)              ✅
+z_min   = -0.0147m  (> -0.05 정상 범위)         ✅
+vel_z   = -0.019    (거의 정지)                 ✅
+폭발 없음                                       
+
+판정 기준 (Ray-Wheel 방식):
+  z_std < 0.01 and -0.05 < z_mean < 0.05
+  (cylinder 방식의 z > 0 기준과 다름 — base_link 평형점이 음수)
+```
+
+---
+
+## Imagination (MPPI 2000env) 적용 가능성
+
+```
+Lidar distances shape = (n_envs, h, w) 확인됨
+→ 2000개 env 동시 Ray cast 가능
+→ imagination에도 Ray force 적용 가능 (추후 구현)
+
+현재 구현:
+  env0 (실제 주행): Ray force 적용
+  env1~2000 (imagination): TODO
+```
+
+---
+
+## 파일 구조
+
+```
+gt_ray/
+├── 0_test_ray_wheel.py       # 단계별 테스트 코드
+├── 1_find_gt.py              # MPPI 마이닝 (Ray-Wheel 방식)
+├── GENESIS_BUG_raycaster.md  # Genesis Lidar 버그 기록
+└── ../../URDF/
+    ├── test_v1_simple.urdf      # 원본 (cylinder collision 있음)
+    └── test_v1_raywheel.urdf    # Ray-Wheel용 (collision 제거)
+```

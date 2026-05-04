@@ -125,7 +125,7 @@ $R_{genesis} = M \cdot R_{blender} \cdot M^{-1}$
 
 
 ### URDF 차체
-![car_image](../res/car_img.png)
+![car_image](../res/1014/car_img.png)
 
 Blender의 차체를 로봇 설계에 쓰이는 URDF(Unified Robot Description Format) 으로 정의
 
@@ -140,7 +140,7 @@ Blender의 차체를 로봇 설계에 쓰이는 URDF(Unified Robot Description F
 #### URDF Development
 | Blender | 초기 urdf | developed URDF |
 | - | - | - |
-| ![](../res/0316/blender_car.gif) |![car_image](../res/car_img.png) | ![](../res/0316/car.png) |
+| ![](../res/0316/blender_car.gif) |![car_image](../res/1014/car_img.png) | ![](../res/0316/car.png) |
 
 ---
 

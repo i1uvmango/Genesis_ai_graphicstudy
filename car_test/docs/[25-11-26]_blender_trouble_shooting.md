@@ -1,7 +1,7 @@
 ## Blender Drift to Genesis
 * RBC Pro 사용
 
-![](../res/path_point.png)
+![](../res/1126/path_point.png)
 
 ### Youtube 영상 보며 Guide Path 동작 구현
 youtube reference: `https://www.youtube.com/watch?v=rrI6wzFquhU` 
@@ -13,7 +13,7 @@ youtube reference: `https://www.youtube.com/watch?v=rrI6wzFquhU`
 https://github.com/i1uvmango/Genesis_ai_graphicstudy/issues/9#issue-3669513138
 
 
-![](../res/path_follow.gif)
+![](../res/1126/path_follow.gif)
 
 
 
@@ -38,10 +38,10 @@ bpy.app.handlers.frame_change_post에 등록된 함수는 사용자가 명시적
 이 경우, 한 번의 프레임 변경에 스크립트가 여러 번 실행되면서 CSV에 데이터를 중복 기록하거나 덮어쓰게 됩니다.
 
 ## Guide Path Driving 영상 (Blender)
-![](../res/drive_square.gif)
+![](../res/1126/drive_square.gif)
 * 사각형 auto drive
   
-![](../res/drive8.gif)  
+![](../res/1126/drive8.gif)  
 * 8자 형태 auto drive
 
 
@@ -49,7 +49,7 @@ bpy.app.handlers.frame_change_post에 등록된 함수는 사용자가 명시적
 ### 8자 모양 drive 학습 후 Genesis 환경 실행
 * 8자 drive 학습 후 inference 해서 실행
   
-![](../res/drive8_initial.gif)
+![](../res/1126/drive8_initial.gif)
   
 * 초기 `정지 상태`를 학습하지 못해 움직이지 않음
 #### 그렇다면 정지 데이터도 뽑아야 하는가?
@@ -73,14 +73,14 @@ bpy.app.handlers.frame_change_post에 등록된 함수는 사용자가 명시적
     *   `bc_train.py`에서 횡방향 속도 및 회전 속도의 **평균(`state_mean`)을 0.0으로 강제**.
     *   물리적 대칭성을 보장하여 직진 입력이 정확히 0으로 정규화되도록 수정.
 
-![](../res/drive8_1.gif)
+![](../res/1126/drive8_1.gif)
 * 
 
 
 
 
 
-![](../res/drive_2.gif)
+![](../res/1126/drive_2.gif)
 * 8자로 달리지 않고 바닥에서 튀면서 이동
 * 예상 원인 : throttle 값이 음수로 변하는 부분에서 바퀴가 반대로 굴러가 마찰력에 의해 튕기는 현상
     * 데이터 전처리 과정에서 문제가 있다고 판단 &rarr; 해결중에 있음

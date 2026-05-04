@@ -49,7 +49,7 @@ https://github.com/user-attachments/assets/ba70947a-7ed5-459c-bf7f-274ecad34938
 
 
 #### Export 시 다음과 같은 설정을 따름
-![export_setting](../res/export_setting.png)
+![export_setting](../res/1103/export_setting.png)
 * Selection Only : 마우스 선택한 mesh 만 export
 * Include children(x) : children 포함하지 않고 export
 * Global Orientation : 위치, 회전, 스케일을 유지하고 export
@@ -165,7 +165,7 @@ wheel_rr: car_parts/wheel_rr.dae
 </geometry>
 ```
 ### 적용 결과
-![error](../res/blender_car_error.png)
+![error](../res/1103/blender_car_error.png)
 
 > 좌표계 변환 문제가 매우 큼
 
@@ -185,7 +185,7 @@ Real-to-Sim System Identification
 2. mlp를 genesis 에 추가하여 Real-to-Sim system 을 목표함
   
 #### 추출 데이터
-![data_extracting](../res/data_extracting.gif)
+![data_extracting](../res/1103/data_extracting.gif)
 ```
 frame	car_x	car_y	car_z	car_yaw	car_vx	car_vy	car_vz	fl_x	fl_y	fl_z	fl_vx	fl_vy	fl_vz	fr_x	fr_y	fr_z	fr_vx	fr_vy	fr_vz	rl_x	rl_y	rl_z	rl_vx	rl_vy	rl_vz	rr_x	rr_y	rr_z	rr_vx	rr_vy	rr_vz
 ```
@@ -213,7 +213,7 @@ pickle 오버헤드 포함: 약 50–100 KB
 약 50–150 KB 수준입니다. 모델이 작고 저장 오버헤드가 적습니다.
 
 ### parameter
-![params](../res/params.png)
+![params](../res/1103/params.png)
 * data.csv : 89kb (매우 작음)
 * 7개의 parameter, 250프레임의 크기, 20 epoch 학습
 * 49kb 의 checkpoint size

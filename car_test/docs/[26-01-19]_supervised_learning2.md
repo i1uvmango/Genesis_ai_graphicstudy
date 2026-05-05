@@ -2,7 +2,7 @@
 
 * stage1, stage2 를 통해 만들어진 env sync, dynamics sync 의 성능을 확인하니 오히려 pure genesis 환경보다 낮았음
 
-![](../res/0119/stage12.png)
+![](../res_wjdaksry/0119/stage12.png)
 
 따라서 stage 1,2 를 사용하지 않기로 함.
 

@@ -1,12 +1,12 @@
 # Blender2Genesis Sim2Sim Calibration
 
-![](../res/0316/pipeline2.png)
+![](../res_wjdaksry/0316/pipeline2.png)
 
 > 본 연구는 자율주행 차량의 Real2Sim &rarr; Real2Sim 확장성을 확보하기 위해, Sim2Sim: 시뮬레이션 환경 간의 제어 최적화 및 매핑 기술을 다룹니다
 
 ## 1. 연구 배경 및 목표
 ## Sim2Real Calibration : 최종 목표
-![](../res/0316/sim2real.png)
+![](../res_wjdaksry/0316/sim2real.png)
 
 > AI 에이전트가 Genesis에서 학습한 제어 능력을 현실(Real world)에 Zero-shot 또는 최소 튜닝으로 그대로 수행하도록 만드는 것.
 
@@ -23,7 +23,7 @@
 > Generative Physics가 있으면 현실-가상을 매우 가깝게 만들고 그 위에서 학습된 정책(policy)은 곧바로 현실에서 동작한다. Zero-Shot Transfer의 핵심 원리.
 
 ### Real2Sim : 중간 단계
-![](../res/0316/real2sim.png)
+![](../res_wjdaksry/0316/real2sim.png)
 > Sim2Real 이 되려면 Real2Sim Transformation(Calibration)이 완벽하게 되어야함
 
 $RealWorld$ &rarr; $Genesis$
@@ -33,7 +33,7 @@ $RealWorld$ &rarr; $Genesis$
 
 
 ## Sim2Sim : 본 연구 과정
-![](../res/0316/sim2sim.png)
+![](../res_wjdaksry/0316/sim2sim.png)
 
 > Real-World 의 데이터를 직접 얻어오는게 제한되어 Sim2Sim calibration 을 진행했고, 이 단계가 된다면 같은 파이프라인으로  Real2Sim calibration 도 적용 가능함
 
@@ -41,7 +41,7 @@ $RealWorld$ &rarr; $Genesis$
 ## 2. 시뮬레이션 환경
 ## Genesis (Simulation)
 
-![](../res/0316/genesis.png)
+![](../res_wjdaksry/0316/genesis.png)
 
 > Neural Network friendly 한 물리 시뮬레이션 환경으로, Blender에서 나타나는 객체의 움직임을 모방&전이하고자 하는 공간
 
@@ -69,11 +69,11 @@ https://github.com/user-attachments/assets/e0609422-8a9c-4695-98d5-4110debb4fde
 
 ### Kinematics vs Dynamics Models
 
-![](../res/0316/model.png)
+![](../res_wjdaksry/0316/model.png)
 
 | 구분 | Blender (Kinematics) | Genesis (Dynamics) |
 | - | - | - |
-| **동일 control input** 주행 비교 | ![](../res/0216/stage1.png) |  ![](../res/0216/stage2_2.png) |
+| **동일 control input** 주행 비교 | ![](../res_wjdaksry/0216/stage1.png) |  ![](../res_wjdaksry/0216/stage2_2.png) |
 | 설명 | 이상적 주행, 수학적 일치 | 오차 존재, 물리적 현상 |
 
 
@@ -84,7 +84,7 @@ https://github.com/user-attachments/assets/e0609422-8a9c-4695-98d5-4110debb4fde
 
 
 ### Dynamics Model : Genesis (물리적 현상)
-![](../res/0316/state.png)
+![](../res_wjdaksry/0316/state.png)
 * velocity
 * angular velocity
 * yaw rate
@@ -125,7 +125,7 @@ $R_{genesis} = M \cdot R_{blender} \cdot M^{-1}$
 
 
 ### URDF 차체
-![car_image](../res/1014/car_img.png)
+![car_image](../res_wjdaksry/1014/car_img.png)
 
 Blender의 차체를 로봇 설계에 쓰이는 URDF(Unified Robot Description Format) 으로 정의
 
@@ -140,7 +140,7 @@ Blender의 차체를 로봇 설계에 쓰이는 URDF(Unified Robot Description F
 #### URDF Development
 | Blender | 초기 urdf | developed URDF |
 | - | - | - |
-| ![](../res/0316/blender_car.gif) |![car_image](../res/1014/car_img.png) | ![](../res/0316/car.png) |
+| ![](../res_wjdaksry/0316/blender_car.gif) |![car_image](../res_wjdaksry/1014/car_img.png) | ![](../res_wjdaksry/0316/car.png) |
 
 ---
 
@@ -212,7 +212,7 @@ $$R_{genesis} = M \cdot R_{blender} \cdot M^{-1}$$
 ## Blackbox Genesis Engine
 
 
-![](../res/0316/pipeline.png)
+![](../res_wjdaksry/0316/pipeline.png)
 
 
 
@@ -245,7 +245,7 @@ MPC 방법 시도 & 실패 정리: [MPC2MPPI](../docs/%5B26-02-16%5D_mpc2mppi.md
 
 ### 원리
 #### for every Frame(Receding Horizon : 10 horizon)  
-  ![](../res/0316/mppi.png)
+  ![](../res_wjdaksry/0316/mppi.png)
 
 1. 600개의 병렬환경 생성 (`t 시점`)
 2. 600개의 환경마다 perturbation 을 주어 서로 다른 제어값 Control(T,S) 세트 생성
@@ -256,7 +256,7 @@ MPC 방법 시도 & 실패 정리: [MPC2MPPI](../docs/%5B26-02-16%5D_mpc2mppi.md
 
 #### MPPI cost
 
-![](../res/0316/loss.png)
+![](../res_wjdaksry/0316/loss.png)
 
 
 * $\sum_{h=1}^{H}$ (Summation): MPPI는 현재 한 점이 아니라 **미래의 10단계($H=10$)**를 미리 가보고 그 합산 점수를 매기는 방식
@@ -341,7 +341,7 @@ MPPI insight & trouble shooting docs : [MPPI_troubleshooting](https://github.com
 
 
 ### Pipeline
-![](../res/0316/inverse_mapping.png)
+![](../res_wjdaksry/0316/inverse_mapping.png)
 * Input : Blender CSV , Golden CSV
 * MLP : Inverse Dynamics Supervised Learning
 * Output : Throttle*, Steer* 
@@ -377,7 +377,7 @@ $$\mathbf{X} = [\underbrace{ v_{current}, k_{current}}_{\text{Current State (2D)
 > 이후 Real2Sim 시, 차량에 부착된 센서에서 동역학적 state를 추출할텐데, 위 MLP 구조를 통해 `dynamic state` &rarr; `(T,S)` mapping 이 가능함
 
 ### Layers
-![](../res/0316/mlp.png)
+![](../res_wjdaksry/0316/mlp.png)
 
 * Linear(25, 128), ELU() &rarr; 오차항(CTE,HE)의 부호 때문에 ELU 사용
 * Linear(128, 128), ELU()
@@ -408,7 +408,7 @@ $$\mathbf{Y} = \begin{bmatrix} T \\ S \end{bmatrix} = \begin{bmatrix} T_{golden}
 
 | Blender | MPPI | Inverse Dynamics Inference(Genesis) |
 | :--- | :--- | :--- | 
-| [![blender](../res/0316/blender.png)](https://github.com/user-attachments/assets/94549c51-5cd4-41d1-a187-f1262d5e1e53)  | [![path_new2](../res/0222/path_new2.png)](https://github.com/user-attachments/assets/14f37b64-8207-4769-9267-a65f0ed32e82) |  [![curve_mlp](../res/0222/curve1.png)](https://github.com/user-attachments/assets/e031fadc-0774-46c6-a9dc-267cfccdd9be)|
+| [![blender](../res_wjdaksry/0316/blender.png)](https://github.com/user-attachments/assets/94549c51-5cd4-41d1-a187-f1262d5e1e53)  | [![path_new2](../res_wjdaksry/0222/path_new2.png)](https://github.com/user-attachments/assets/14f37b64-8207-4769-9267-a65f0ed32e82) |  [![curve_mlp](../res_wjdaksry/0222/curve1.png)](https://github.com/user-attachments/assets/e031fadc-0774-46c6-a9dc-267cfccdd9be)|
 
 주행 결과 정리 docs : [BC Inverse Mapper](https://github.com/i1uvmango/Genesis_ai_graphicstudy/blob/main/car_test/docs/%5B26-03-05%5D_BC_inverse_mappper.md)
 
@@ -417,7 +417,7 @@ $$\mathbf{Y} = \begin{bmatrix} T \\ S \end{bmatrix} = \begin{bmatrix} T_{golden}
 
 | 미학습 경로1 | 미학습 경로2 |
 | - | - |
-|[![new1](../res/0222/new1.png)](https://github.com/user-attachments/assets/1897e0ea-6dc8-4ebf-bfb7-7b46bf2e321d) |[![new2](../res/0222/new2.png)](https://github.com/user-attachments/assets/63a83b3d-1214-4fb0-9b9a-8dc2beb2fbee) |
+|[![new1](../res_wjdaksry/0222/new1.png)](https://github.com/user-attachments/assets/1897e0ea-6dc8-4ebf-bfb7-7b46bf2e321d) |[![new2](../res_wjdaksry/0222/new2.png)](https://github.com/user-attachments/assets/63a83b3d-1214-4fb0-9b9a-8dc2beb2fbee) |
 
 * 일반화 성능 평가를 위해 학습하지 않은 경로를 input 해봄
 * 곡률이 많을 수록 MPPI 최적화(정답값 데이터 생성)에 컴퓨팅 비용이 높았음

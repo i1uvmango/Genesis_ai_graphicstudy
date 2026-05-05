@@ -41,13 +41,13 @@
 
 ## time index 기반 제어의 문제점
 
-![alt text](../res/0106/0106_1.png)
+![alt text](../res_wjdaksry/0106/0106_1.png)
 * spawn 방향 미정렬 &rarr; 오차가 있는 상태로 시작하여 모델이 차량 방향을 수정해야함 &rarr; 시간이 걸림
 * 시간에 따라 목표 point가 움직임 &rarr; 오차 누적
 
 
 ## Spatial index 기반 목표 지점 설정
-![](../res/0106/0106_2.png)
+![](../res_wjdaksry/0106/0106_2.png)
 * 시간에 따라 목표 point가 움직임 &rarr; 오차 누적
 * 공간에 따른 목표 point의 변화
 
@@ -70,12 +70,12 @@
     *   **결과**: 초기 스폰 시 차량이 경로와 완벽하게 정렬되고 `e_head`가 0에 가까워짐.
 
 
-![](../res/0106/0106_ppo.png)
+![](../res_wjdaksry/0106/0106_ppo.png)
 * 학습
 * pure pursuit 알고리즘 성능이 너무 좋아서 10 에피소드만에 조기종료 &rarr; 조기종료 조건을 높였음
 
 
-![](../res/0106/0106_lookpoint.png) 
+![](../res_wjdaksry/0106/0106_lookpoint.png) 
 * 흰 점: lookpoint 
 * 노란 선: 차량 실제 경로
 * 초록 선: 목표 경로
@@ -101,8 +101,8 @@
 *   **주행 안정성**: 차량이 트랙을 이탈하지 않고 고속으로 완주 가능.
 *   **시각화**: `test_ppo.py`에 Lookahead Point 와 경로(노란 선) 시각화를 추가하여 제어 의도를 명확히 파악 가능.
 *   **PPO 학습 준비 완료**: 이제 PPO를 통해 **스마트한 속도 조절(Throttle Control)**과 **극한의 코너링 보정(Residual Steering)**을 학습할 준비가 됨.
-    ![alt text](../res/0106/0106_lookahead.png)
+    ![alt text](../res_wjdaksry/0106/0106_lookahead.png)
 
-    ![alt text](../res/0106/0106_purepursuit.gif)
+    ![alt text](../res_wjdaksry/0106/0106_purepursuit.gif)
     * pure pursuit algorithm based control, no ppo training
 

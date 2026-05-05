@@ -68,7 +68,7 @@ g_pos_x, g_pos_y, g_pos_z, g_qw, g_qx, g_qy, g_qz, g_lin_vx, g_lin_vy, g_lin_vz,
 - [데이터 추출 코드](../src/on_off_data_blender_data.py) : Spin 절댓값, 이동 평균, `v_long` 기반 Throttle 로직 적용.
 
 ### 여전히 8자 움직임 보단 원을 그리는 차량
-  ![](../res/2025-12-28%20022038.gif)
+  ![](../res_wjdaksry/2025-12-28%20022038.gif)
 ## 4️⃣ 남은 과제 & 다음 단계
 1. **데이터 다양화 및 양 확보**
    - 250 프레임 1세트 &rarr; 10세트 사용

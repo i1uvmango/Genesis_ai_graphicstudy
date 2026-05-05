@@ -2,57 +2,57 @@
 
 ### RBC addon rigged car
   
-![](../../res/0115/car.png)  
+![](../../res_wjdaksry/0115/car.png)  
 
 
 
 * RBC addon rigged car 사용
 
 
-![](../../res/0115/car3.png)
+![](../../res_wjdaksry/0115/car3.png)
   
 * mesh + armature &rarr; car 형상 + 차량 제어 constraints 로 구성
 
-![](../../res/0115/bone.png)
+![](../../res_wjdaksry/0115/bone.png)
 * bone 에 걸리는 물리력을 python script를 통해 데이터를 추출함
 
 
-![](../../res/0115/car4.png)
+![](../../res_wjdaksry/0115/car4.png)
 * 자동차 세팅 조절 (bone &rarr; constraints / physics &rarr; 세팅 변경)
 
 ## 2. 경로 설정 (Blender)
 * bezier curve로 경로를 그린 뒤, path follow 클릭 후 bezier curve 선택
 
-<video controls src="../../res/0115/car.mp4" title="Title"></video>
+<video controls src="../../res_wjdaksry/0115/car.mp4" title="Title"></video>
 비디오 링크: https://drive.google.com/file/d/1iwlGOhXwCR_1VFKzuBZLOm6HuUWURWuv/view?usp=sharing 
 
 ## 3. 구동계 설정
-![](../../res/0115/car2.png)
+![](../../res_wjdaksry/0115/car2.png)
 * 바퀴:50kg * 4개
 * 차체: 1000kg
 * 총 : 1200kg
 
 ### wheel constraints
-![](../../res/0115/wheel.png)
+![](../../res_wjdaksry/0115/wheel.png)
 * 후륜 구동
 * 앞바퀴 조향만
 
 ### suspension constraints
-![](../../res/0115/sus.png)
+![](../../res_wjdaksry/0115/sus.png)
 * 서스펜션 : 1 (interface 기준)
 * Spring stiffness: 50 (interface 기준)
 * Damping: 2(interface 기준)
 ### weight / inertia
-![](../../res/0115/weight.png)
+![](../../res_wjdaksry/0115/weight.png)
 * 중앙 기준
 * weight ratio : 0.15%
 
 ### engine constraint
-![](../../res/0115/engine.png)
+![](../../res_wjdaksry/0115/engine.png)
 * basic(default setting)
 
 ### driving constraint
-![](../../res/0115/driving.png)
+![](../../res_wjdaksry/0115/driving.png)
 
 
 * traction control : 1 (interface 기준)
@@ -60,19 +60,19 @@
     * 마찰을 넘지 않게 토크를 관리하는 시스템
 
 
-    ![](../../res/0115/traction.png)
+    ![](../../res_wjdaksry/0115/traction.png)
 
 
 
 ## 4. 주행 경로 및 마찰 계수 설정 (Variable Friction)
 
 
-![](../../res/0115/ground.png)
+![](../../res_wjdaksry/0115/ground.png)
 * 현재 주행 ground 설정 friction : 1 (interface 기준)
 
 ### 주행경로에 따로 마찰계수를 주는 방법
 
-![](../../res/0115/road.png)
+![](../../res_wjdaksry/0115/road.png)
 
 
 ### 4.1) 도로를 구간별 Mesh로 분할
@@ -93,7 +93,7 @@
 
 1. mesh 클릭 후 우측 아래 physics properties 로 이동
 
-![](../../res/0115/constraints.png)
+![](../../res_wjdaksry/0115/constraints.png)
 
 2. surface response → friction 로 마찰계수를 조정 가능
 
@@ -109,7 +109,7 @@
 
 
 #### 하나의 terrain 에서 차량이 움직이는 경우
-![](../../res/0115/road2.png)
+![](../../res_wjdaksry/0115/road2.png)
 * 산악 지형: 연속적인 마찰 계수 가정 &rarr; genesis 에서는 object 로 불러와서 terrain field 로 계산하는 것이 유리하다고 함
 
 
@@ -120,10 +120,10 @@
 - Friction: **1.0**
 
 ## 5 주행 데이터 획득 방법
-![](../../res/0115/script.png)
+![](../../res_wjdaksry/0115/script.png)
 * scripting 으로 python 을 통한 제어 가능
 
-![](../../res/0115/script2.png)
+![](../../res_wjdaksry/0115/script2.png)
 * import bpy 를 해야 python이 작동함
 * 우측 상단 run 버튼을 눌러 실행
 * 좌측 하단 콘솔창
@@ -148,12 +148,12 @@
 | `throttle_norm` | 정규화 쓰로틀 ([-1, 1]) |
 
 #### 좌표계 변환
-![](../../res/0115/blender.png)
+![](../../res_wjdaksry/0115/blender.png)
 * blender 좌표계(+z up, +y forward, +x right)
 
 ---
 
-![](../../res/0115/gencord.png)
+![](../../res_wjdaksry/0115/gencord.png)
 * genesis 좌표계(+z up, +x forward, +y left)
   * 좌표계가 다르기에 quarternion을 사용하여 좌표계 변환한 데이터를 추출
 

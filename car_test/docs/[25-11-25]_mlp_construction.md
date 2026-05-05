@@ -11,11 +11,11 @@ frame	car_x	car_y	car_z	car_yaw	car_vx	car_vy	car_vz	fl_x	fl_y	fl_z	fl_vx	fl_vy	
 * 또한 현재 Blender Rig에 Steering 이 인터페이스로만 제공된다는 걸 확인
   
 ### 새로운 방법 : 쿼터니안 차분(difference) 기반 state 추출
-![](../res/1125/Quaternion.png)
+![](../res_wjdaksry/1125/Quaternion.png)
 * **이전회전 state 과 현재회전 state 의 변화를 통해서 회전의 순간적인 속도를 알려주는 3d 벡터를 구함**
 
 #### 쿼터니안이란? : 회전 상태
-![](../res/Quaternion2.png)
+![](../res_wjdaksry/Quaternion2.png)
 * x,y,z 는 회전축 방향, w는 1로 정규화 해서 사용 &rarr; 3 dof(4dof 이지만 위치는 정규화화)
 * Euler(오일러) 각은 Roll/Pitch/Yaw 의 순서에 따라 결과가 달라짐
     * URDF Mesh 입힐때 바퀴가 오일러각 설정 순서에 따라 바뀐것이 확인됨
@@ -95,7 +95,7 @@ tanh -activate f
 Output (2)
 ```
 
-![](../res/1125/mlp_layer.png)
+![](../res_wjdaksry/1125/mlp_layer.png)
 
 #### 1. 입력층 (Input Layer)
 * 6 dof 입력(g_lin_vx, g_lin_vy, g_lin_vz, g_ang_vx, g_ang_vy, g_ang_vz)
@@ -119,7 +119,7 @@ Output (2)
 원시 6-DoF 상태에서 다양한 ‘1차적 운동 패턴’을 폭넓게 확장하여 학습
 
 ##### ReLu 활성화 함수
-![](../res/1125/relu.png)
+![](../res_wjdaksry/1125/relu.png)
 * 비선형성 부여 &rarr; 복잡한 물리적 관계를 표현할 수 있도록 함
 * 6DoF 를 64차원 feature로 확장
 * 64차원의 feature로 아래를 조합할 수 있게 확장
@@ -139,7 +139,7 @@ Output (2)
 * 비선형성 부여 &rarr; 복합적인 의미를 조합을 통해 만듦 
 
 #### 3. 출력층 (Output Layer)
-![](../res/1125/tanh.png)
+![](../res_wjdaksry/1125/tanh.png)
 | 출력       | Activation | 최종 범위   |
 | -------- | ---------- | ------- |
 | steering | tanh       | [-1, 1] |
@@ -153,7 +153,7 @@ Output (2)
 
 ### mlp 보강 방법
 * dropout (특정 노드를 없애 일반화 성능 높임)
-![](../res/1125/mlp_dropout.png)
+![](../res_wjdaksry/1125/mlp_dropout.png)
 * batchnorm (학습을 빠르고 안정적이게 하기 위해 각층의 입력 분포 정규화)
 
 

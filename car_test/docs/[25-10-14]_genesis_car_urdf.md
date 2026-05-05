@@ -25,7 +25,7 @@ Genesis에서 자동차 URDF 생성 및 시뮬레이션
 ----
 ## URDF 차체+바퀴+Joint
 
-![car_image](../res/1014/car_img.png)
+![car_image](../res_wjdaksry/1014/car_img.png)
 
 
 ### URDF 파일 코드
@@ -238,7 +238,7 @@ urdf 이름: genesis_simple_car
         ```
         <inertia ixx="5" iyy="5" izz="5"/> 라고 하면
         ```
-        ![alt text](./res/1014/image.png)
+        ![alt text](./res_wjdaksry/1014/image.png)
         * τ=I⋅α
         * 토크 = inertia(관성 hessian 행렬) * 각가속도 벡터(alpha: angular acceleration)
         * 각가가속도 = radian / S^2 (초마다 radian &rarr; 속도 라디안으로 정의되어 있음)
@@ -323,7 +323,7 @@ urdf 이름: genesis_simple_car
 # car_test.py 
 * simulation  
 
-![car_test_demo](../res/1014/car_test_drive.gif)
+![car_test_demo](../res_wjdaksry/1014/car_test_drive.gif)
 
 * 키보드 방향키 input 에 따른 주행
     * wasd는 visualizer default 키로 지정되어 있어서 방향키 사용

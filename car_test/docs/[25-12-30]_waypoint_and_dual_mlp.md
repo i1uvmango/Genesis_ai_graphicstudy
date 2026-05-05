@@ -21,7 +21,7 @@
     Train: 직진 A, 직진 B, 좌회전 C, 우회전 D
     Val:   직진 B, 좌회전 A, 좌회전 D, 우회전 C
     ```
-    ![](../res/1230/1230_shuffle.png)
+    ![](../res_wjdaksry/1230/1230_shuffle.png)
     
     ```
     # 시간순 split
@@ -35,7 +35,7 @@
     ```
     * 이렇게 되면 랜덤성을 사용해서 데이터를 섞어서 일반화의 성능을 높임
 
-    <video controls src="../res/1230/20260101-1511-54.9393138.mp4" title="Title"></video>
+    <video controls src="../res_wjdaksry/1230/20260101-1511-54.9393138.mp4" title="Title"></video>
     * 이것만으로 해결이 되지 않음
 
 ### weight decay 강화
@@ -50,7 +50,7 @@
     
    * 근데 이건 8자에 overfitting 되어서 더 결과가 맞게 나와야하기 때문에 올바르지 않음
    * 마찬가지로 결과가 좋지 않아서 롤백함
-    ![](../res/1230/1230_path3.png)
+    ![](../res_wjdaksry/1230/1230_path3.png)
 
 
 
@@ -69,7 +69,7 @@
 
 | 기존 | 새로운 경로 |
 | --- | --- |
- ![](../res/1230/1230_path2.png) | ![](../res/1230/1230_path.png) |
+ ![](../res_wjdaksry/1230/1230_path2.png) | ![](../res_wjdaksry/1230/1230_path.png) |
 
 ### 전체 데이터 통합 학습 후 8자 움직임 Behavior Cloning
 
@@ -83,7 +83,7 @@
 | drive_straight_test.csv | 직진 주행 | 2500 |
 | **합계** | **다양한 속도/상황 포함** | **11376** |
 
-![통합_loss](../res/1230/1230_loss.png)
+![통합_loss](../res_wjdaksry/1230/1230_loss.png)
 
 #### 통합 데이터 학습 Epoch 별 훈련 결과
 
@@ -119,7 +119,7 @@
 | 전체 개선율 | 47.3% (0.007954→0.004190) | 큰 폭 개선 |
 | 과적합 여부 | Epoch 100 이후 train/val gap 증가 | 정규화 필요 |
 
-![best_val](../res/1230/1230_path4.png)
+![best_val](../res_wjdaksry/1230/1230_path4.png)
 * 여전히 경로를 못그림
 
 #### 이유 분석
@@ -133,7 +133,7 @@ Out-of-Distribution 문제: 입력 상태가 학습 데이터와 다름(속도)
 
 * 예상 이유는 8자 데이터셋의 속도와 학습된 속도가 달라서 모델이 현 상황을 제대로 읽지 못함
     * 일단 움직임을 뽑아내기 위해 속도를 강제적으로 맞춰줌
-![](../res/1230/1230_path5.png)
+![](../res_wjdaksry/1230/1230_path5.png)
 * 원하는 움직임을 추론하지 못함
 
 ### waypoint 기반 학습
@@ -170,12 +170,12 @@ dy = 목표점.y - 현재위치.y
 ---
 
 ### 통합데이터 + waypoint 기반 학습 결과
-![](../res/1230/1230_combwp.gif)
+![](../res_wjdaksry/1230/1230_combwp.gif)
 * 통합 데이터 + waypoint 기반 학습 인데 `drive_8_test.csv`파일로만 학습한 과적합된 움직임과 거의 동일
 
 | 통합데이터&waypoint | 8자데이터 학습 |
 | --- | --- |
-| ![](../res/1230/1230_combwp.gif) | ![](../res/1230/1230_path3.png) |
+| ![](../res_wjdaksry/1230/1230_combwp.gif) | ![](../res_wjdaksry/1230/1230_path3.png) |
 
 * 하나의 움직임으로 수렴
 
@@ -185,7 +185,7 @@ dy = 목표점.y - 현재위치.y
 
 ### 2개의 mlp를 사용해보기로 함
 
-![](../res/1230/1231_2mlp구조도.png)
+![](../res_wjdaksry/1230/1231_2mlp구조도.png)
 #### 입력 데이터 (Input): 14차원
 두 모델은 **waypoint 방법과 동일한 14차원 상태 벡터**를 입력으로 받습니다.
 
@@ -203,7 +203,7 @@ dy = 목표점.y - 현재위치.y
 * 차량이 트랙을 따라가기 위한 "내비게이션" 역할
 ---
 
-![](../res/1230/1230_2mlp_loss.png)
+![](../res_wjdaksry/1230/1230_2mlp_loss.png)
 
 * throttle, steering 각각 mlp중 가장 낮은 loss 의 checkpoint를 `dual_mlp_test.pth`에 저장
 * `dual_mlp_test.pth` 에는 steering/throttle의 best checkpoint 모두 있는 것
@@ -211,7 +211,7 @@ dy = 목표점.y - 현재위치.y
 
 ##### 2mlp결과
 
-  ![2mlp](../res/1230/1230_2mlp1.gif)
+  ![2mlp](../res_wjdaksry/1230/1230_2mlp1.gif)
 
 #### mlp 분리로 인한 효과
 * throttle 개선
@@ -239,10 +239,10 @@ dy = 목표점.y - 현재위치.y
 
 | 방법 | 설명 | 결과/링크 | 비고 |
 | :--- | :--- | :--- | :--- |
-| **Shuffle Split** | Train/Val 데이터를 무작위로 섞어 일반화 시도 | <video controls src="../res/1230/20260101-1511-54.9393138.mp4" title="Title"></video> | 암기형 모델 방지 실패 |
-| **Weight Decay** | 정규화 강화를 통한 모델 단순화 |![](../res/1230/1230_path3.png) | 8자 주행 특화에 부적합 |
-| **통합 데이터 학습** | 전체 주행 데이터 통합 학습 (Epoch 180) | ![best_val](../res/1230/1230_path4.png) | 여전히 경로 추종 실패 |
-| **강제 속도 동기화** | 학습 데이터 속도와 시뮬레이션 속도 강제 일치 | ![](../res/1230/1230_path5.png) | 움직임 추론 실패 |
-| **Waypoint (dx, dy)** | 상대 위치 기반 14차원 입력 (Location Invariant) | ![](../res/1230/1230_combwp.gif) | 특정 주행(8자) 데이터로 편향 수렴 |
-| **Dual MLP** | Throttle/Steering 제어망 분리 학습 | ![2mlp](../res/1230/1230_2mlp1.gif) | Throttle(토크 제어) 대폭 개선, Steering 개선 중 |
+| **Shuffle Split** | Train/Val 데이터를 무작위로 섞어 일반화 시도 | <video controls src="../res_wjdaksry/1230/20260101-1511-54.9393138.mp4" title="Title"></video> | 암기형 모델 방지 실패 |
+| **Weight Decay** | 정규화 강화를 통한 모델 단순화 |![](../res_wjdaksry/1230/1230_path3.png) | 8자 주행 특화에 부적합 |
+| **통합 데이터 학습** | 전체 주행 데이터 통합 학습 (Epoch 180) | ![best_val](../res_wjdaksry/1230/1230_path4.png) | 여전히 경로 추종 실패 |
+| **강제 속도 동기화** | 학습 데이터 속도와 시뮬레이션 속도 강제 일치 | ![](../res_wjdaksry/1230/1230_path5.png) | 움직임 추론 실패 |
+| **Waypoint (dx, dy)** | 상대 위치 기반 14차원 입력 (Location Invariant) | ![](../res_wjdaksry/1230/1230_combwp.gif) | 특정 주행(8자) 데이터로 편향 수렴 |
+| **Dual MLP** | Throttle/Steering 제어망 분리 학습 | ![2mlp](../res_wjdaksry/1230/1230_2mlp1.gif) | Throttle(토크 제어) 대폭 개선, Steering 개선 중 |
 

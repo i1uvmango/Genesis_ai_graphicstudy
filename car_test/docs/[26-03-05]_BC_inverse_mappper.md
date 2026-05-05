@@ -79,10 +79,10 @@ https://github.com/user-attachments/assets/8fecd2af-336d-4477-92e9-8e992187b3d8
 
 | 경로 | 클릭 시 영상 재생 |
 | :--- | :---: |
-| omm | [![path_new](../res/0222/path_new.png)](https://github.com/user-attachments/assets/de092948-a099-4ff9-aecc-79a4b4e53b10) |
-| curve | [![path_new2](../res/0222/path_new2.png)](https://github.com/user-attachments/assets/14f37b64-8207-4769-9267-a65f0ed32e82) |
-| left | [![left](../res/0222/left.png)](https://github.com/user-attachments/assets/f76b448a-003a-4f81-8264-26dd2874e3f7) |
-| any (영상 없음) | ![any](../res/0222/any.png) |
+| omm | [![path_new](../res_wjdaksry/0222/path_new.png)](https://github.com/user-attachments/assets/de092948-a099-4ff9-aecc-79a4b4e53b10) |
+| curve | [![path_new2](../res_wjdaksry/0222/path_new2.png)](https://github.com/user-attachments/assets/14f37b64-8207-4769-9267-a65f0ed32e82) |
+| left | [![left](../res_wjdaksry/0222/left.png)](https://github.com/user-attachments/assets/f76b448a-003a-4f81-8264-26dd2874e3f7) |
+| any (영상 없음) | ![any](../res_wjdaksry/0222/any.png) |
 
 * 데이터 증강을 통해 반전된 경로도 "데이터 있음" 으로 간주
 * CTE , HE 모두 부호를 주어 오차의 왼/오른쪽 구별하여 학습 &rarr; 복원력 모델이 학습하게 함
@@ -93,12 +93,12 @@ https://github.com/user-attachments/assets/8fecd2af-336d-4477-92e9-8e992187b3d8
 
 | 구분 | overfitting 주행 | 통합 데이터 주행(영상) |
 | - | - | - |
-| omm | [![omm](../res/0222/path_new.png)](https://github.com/i1uvmango/Genesis_ai_graphicstudy/issues/32#issue-4058358397) | [![mlp_omm](../res/0222/path_new.png)](https://github.com/user-attachments/assets/043d166b-b0e5-4f7c-940d-47966c439f59) |
-| curve | ![](../res/0222/curve1.png) | [![curve_mlp](../res/0222/curve1.png)](https://github.com/user-attachments/assets/e031fadc-0774-46c6-a9dc-267cfccdd9be) |
-| curve2 | ![](../res/0222/curve2.png) | [![curve2_mlp](../res/0222/curve2.png)](https://github.com/user-attachments/assets/2735084d-97f8-4808-a5c3-278165e4c0b0) |
-| left | ![](../res/0222/1_left.png) | [![left_mlp](../res/0222/left_mlp.png)](https://github.com/user-attachments/assets/7450a9af-ad45-4c0d-97e6-80d56f813d51) |
-| s curve | ![](../res/0222/1s.png) | [![mlp_s](../res/0222/mlp_s.png)](https://github.com/i1uvmango/Genesis_ai_graphicstudy/issues/27#issue-4058185702) |
-| any | ![](../res/0222/mlp_any.png) | [![any](../res/0222/mlp_any.png)](https://github.com/user-attachments/assets/2c29ac61-00e2-4da4-98cc-133332ed7b6f) |
+| omm | [![omm](../res_wjdaksry/0222/path_new.png)](https://github.com/i1uvmango/Genesis_ai_graphicstudy/issues/32#issue-4058358397) | [![mlp_omm](../res_wjdaksry/0222/path_new.png)](https://github.com/user-attachments/assets/043d166b-b0e5-4f7c-940d-47966c439f59) |
+| curve | ![](../res_wjdaksry/0222/curve1.png) | [![curve_mlp](../res_wjdaksry/0222/curve1.png)](https://github.com/user-attachments/assets/e031fadc-0774-46c6-a9dc-267cfccdd9be) |
+| curve2 | ![](../res_wjdaksry/0222/curve2.png) | [![curve2_mlp](../res_wjdaksry/0222/curve2.png)](https://github.com/user-attachments/assets/2735084d-97f8-4808-a5c3-278165e4c0b0) |
+| left | ![](../res_wjdaksry/0222/1_left.png) | [![left_mlp](../res_wjdaksry/0222/left_mlp.png)](https://github.com/user-attachments/assets/7450a9af-ad45-4c0d-97e6-80d56f813d51) |
+| s curve | ![](../res_wjdaksry/0222/1s.png) | [![mlp_s](../res_wjdaksry/0222/mlp_s.png)](https://github.com/i1uvmango/Genesis_ai_graphicstudy/issues/27#issue-4058185702) |
+| any | ![](../res_wjdaksry/0222/mlp_any.png) | [![any](../res_wjdaksry/0222/mlp_any.png)](https://github.com/user-attachments/assets/2c29ac61-00e2-4da4-98cc-133332ed7b6f) |
 
 > 전체적으로 1개의 경로에 대해서 학습한 결과보다, 많은 데이터에 대해 학습한 후, 추론하는 게 결과가 좋았음
 
@@ -107,9 +107,9 @@ https://github.com/user-attachments/assets/8fecd2af-336d-4477-92e9-8e992187b3d8
 
 ### 3-3. 학습하지 않은 새로운 경로 추론
 
-[![new1](../res/0222/new1.png)](https://github.com/user-attachments/assets/1897e0ea-6dc8-4ebf-bfb7-7b46bf2e321d)
+[![new1](../res_wjdaksry/0222/new1.png)](https://github.com/user-attachments/assets/1897e0ea-6dc8-4ebf-bfb7-7b46bf2e321d)
 
-[![new2](../res/0222/new2.png)](https://github.com/user-attachments/assets/63a83b3d-1214-4fb0-9b9a-8dc2beb2fbee)
+[![new2](../res_wjdaksry/0222/new2.png)](https://github.com/user-attachments/assets/63a83b3d-1214-4fb0-9b9a-8dc2beb2fbee)
 
 > 일반화의 성능을 갖춤
 

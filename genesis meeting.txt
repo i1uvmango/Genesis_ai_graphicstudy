@@ -40,3 +40,52 @@ terrain type 이 따로있음 : genesis terrain type 을 따로 빼놨음
 카를라? 오픈소스 샘플
 * 당연히 env 바뀌면 그 구간은 mesh(friction) 바꿔줘야하고, 그리고 그 iteraction 의 계산방식을 max 냐 min이냐 multi 이냐 등 매 스텝 설정해야함
 * torque/mass/friction 계산방식 : 전장에서 총 맞았떠니 토크 -20% 감소 등 이런 상황-> 매 스텝 input parameter으로 해줘야한다
+* 브레이크 추가
+* 카메라 추가해서 view 하나 더 주기
+-----------------------------------------------------
+경로에서 틀어졌을때 경로 따라가는걸로 강화학습 관점으로 해라(st to st? , 다이나믹 상황에서는 결국 강화학습(완전 policy 기반? 아니면 st + policy?))
+
+* z축을 넣거나, plane 가정해서 x,y 쓰거나 or local 로 쓰거나
+* terrain type 에 대한 정리 공부 ***내일까지
+* terrain 에 
+* resetup(차량 무게가 바뀌는데 cost가 없으면 바뀌는게 좋긴함)
+
+* 알파마요 라는거 알아보기 -> framework 구축이 어려운데 제공을 해줌
+
+<교수님에게 설명할 수 있는 정도로 설명>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+카를라
+콜라이더: 메시, 하이트필드, 
+충돌 메커니ㅣ즘
+
+
+충돌테스트 명시적으로 지정 찾아보기( ccd, dcd)
+
+ray 방식도
+
+3d vs 3d model collision : collider 중요함 근데 바퀴 원통(매우 쌈) 지형이 문제였다(지형의 collider bvh 그냥 쓰게하고) 바퀴를 더 단순화하자 -> 이게 unreal engine
+
+
+heightmap(point sampling or linear or cubic) 이랑 collision이랑 다르다 *** 
+
+지형도(heightfield) 적당히 높이고, cubic ok, gaussian은 불필요 -> 그냥 mesh 로 해라 어차피 ray(bvh) 충돌이니깐, (mesh+terrain 인지 mesh인지는 상관없을듯 전자가 더 쉽긴할듯) 
+
+
+
+
+나중에 genesis 를 reference하는 공간 관점에서 brake는 필요하다(mppi말고 강화학습만)
+브레이크 밟을 시 throttle 0
+

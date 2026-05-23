@@ -44,11 +44,6 @@ _Genesis_Vehicle SDK v0.5.5 — cross-slope 비탈에서 lateral slip 거동 정
 `v_eff_clamp = 0.5 m/s` 영역 에서 F_tire 약해짐 → 정지 근방 마찰 부족 →
 비탈 에서 lateral slip 위험.
 
-### 1.3 본 연구 의 목표
-
-- (A) 정지 + 저속 주행 의 SDK baseline 정량 측정
-- (B) F_lat 전용 hook (`StaticFrictionLockLat`) 작성 + `hold_k_lat` sweep
-- (C) BEFORE/AFTER 시각 검증
 
 ---
 
@@ -98,6 +93,8 @@ _Genesis_Vehicle SDK v0.5.5 — cross-slope 비탈에서 lateral slip 거동 정
 **정상상태**: t ∈ [2.0, 4.0] s
 
 #### 측정 결과
+
+예상과 달리, 차량을 그냥 경사면 위에 정지시켜 놓았을 때는 lateral slip이 거의 발생하지 않음
 
 | slope θ (°) | v_lat_peak (m/s) | v_lat_steady ± σ (m/s) | slip distance (m) | dy_rate_steady (m/s) | roll_steady (°) | yaw_drift (°) | a_lat_theory (m/s²) | **slip_ratio** |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|

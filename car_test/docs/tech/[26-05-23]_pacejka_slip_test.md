@@ -314,17 +314,19 @@ class StaticFrictionLockLat(StabilityHook):
 
 ## 5. Part C — Viewer 시각 검증
 
-before hook vs after hook
+before hook vs after hook : 15* slope
 
 ![](../../res_wjdaksry/0519/slip.mp4)
 
 https://github.com/user-attachments/assets/85cf849b-16b2-4acb-9b04-79bca84f53bb
 
+* before vlat hook
 
 ![](../../res_wjdaksry/0519/no_slip.mp4)
 
 https://github.com/user-attachments/assets/04022f2b-f8eb-415c-89bb-18151f1e35c3
 
+* after vlat hook k=10000
 
 ### 5.1 BEFORE — hook 없음 (k_lat = 0)
 

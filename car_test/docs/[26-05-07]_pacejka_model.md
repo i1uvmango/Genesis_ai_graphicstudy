@@ -136,7 +136,7 @@ $$F = D \cdot \sin\!\Big(C \cdot \arctan\big(B \cdot s - E \cdot (B \cdot s - \a
 
 ### Parameter Interpretation : 파라미터 설명
 
-#### B: Initial Stiffness (초기 응답: steering response)
+#### B: Initial Stiffness (초기 반응 민감도)
 * 의미: 슬립이 시작되는 초기 단계에서의 힘의 기울기(Stiffness)를 결정
 * 영향: $B$가 클수록 핸들을 살짝만 꺾어도 steering이 민감해짐, 작을수록 둔해짐
 
@@ -147,26 +147,25 @@ $$F = D \cdot \sin\!\Big(C \cdot \arctan\big(B \cdot s - E \cdot (B \cdot s - \a
 
   어느정도 슬립이 되어야 steering에 의한 마찰력이 붙기시작함
 
-#### C: Shape Factor (형상 계수: 접지 유지력)
-* 의미: 타이어의 힘의 유지력을 결정
+#### C: Shape Factor (형상 계수: 전체 곡선 모양)
+> 부드럽게 한계까지 가느냐? vs 급격히 버티다가 한번에 터지냐
+* 의미: 타이어의 **전반적인** 힘의 유지력/capability를 결정
 
    ![](../res_wjdaksry/0512/c1.png)
-  * 낮은 C : 접지력이 유지되며 **드리프트 현상** 지속
+  * 낮은 C : 접지력이 유지되며 **드리프트 현상** 지속 (부드럽게 한계까지)
 
    ![](../res_wjdaksry/0512/c2.png)
-  * 높은 C : 접지력 유지되며 **높은 제어력 유지**, 하지만 한계 초과 시 **스핀**
-
-#### C의 영향
-* 종방향(Longitudinal)은 1.5~1.6 &rarr; 타이어의 접지력은 좋지만 한계 초과 시 스핀 현상 발생
-* 횡방향(Lateral)은 1.3 내외 &rarr; 코너링 시 타이어가 미끄러져도 최대 그립에 가깝게 힘을 계속 지면에 전달하며 드리프트
+  * 높은 C : 접지력 유지되며 **높은 제어력 유지**, 하지만 한계 초과 시 **스핀**(버티다 터짐)
 
 
-#### D: Peak Factor (정점 계수)의미: 최대 마찰력
+#### D: Peak Factor (정점 계수)
+
+* 의미: 타이어의 최대 마찰력
 
   ![](../res_wjdaksry/0512/slip.png)
 
 * 물리적 관계: $D = \mu \cdot N$ (최대마찰계수)
-* (마찰계수 $\times$ 수직항력).영향: 그래프의 세로축 최대 높이를 결정합니다. 이 값이 높을수록 '그립이 좋은 타이어'
+* (마찰계수 $\times$ 수직항력).영향: 값이 높을수록 '그립이 좋은 타이어'
 
 
 #### E: Curvature Factor (곡률 계수: 피크 이후 힘의 감소)

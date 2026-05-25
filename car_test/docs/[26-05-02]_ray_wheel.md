@@ -1,5 +1,15 @@
 # Ray+BVH를 활용한 충돌로의 전환
 
+Genesis의 `cylinder ↔ terrain 3D` collision은 
+
+1. contact normal 불안정
+2. heightfield 변환 손실
+3. substep=50 의 무거움
+
+부담 등 한계가 있어, 바퀴 collision을 제거하고 raycast hit point를 충돌 판정에 사용하는 `ray-wheel 구조`를 도입했다. 
+
+구현 과정에서 외부 force 인가 주기(24Hz)와 spring 진동수의 mismatch로 인한 ZOH 발진 / K-dt aliasing 문제가 드러났고, K값과 dt 조합 분석을 통해 안정 영역을 확보하는 과정과 검증을 다룬다.
+
 ## Genesis 충돌 처리 방식 정리
 
 ### CCD vs DCD

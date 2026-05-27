@@ -167,6 +167,9 @@ $$F = D \cdot \sin\!\Big(C \cdot \arctan\big(B \cdot s - E \cdot (B \cdot s - \a
 * 물리적 관계: $D = \mu \cdot N$ (최대마찰계수)
 * (마찰계수 $\times$ 수직항력).영향: 값이 높을수록 '그립이 좋은 타이어'
 
+$F = D \cdot \sin\_{..}$
+
+범위: -D ~ D
 
 #### E: Curvature Factor (곡률 계수: 피크 이후 힘의 감소)
 * 의미: 정점(Peak) 근처의 곡률과 정점 이후의 '힘의 빠짐(Drop-off)' 정도를 조절

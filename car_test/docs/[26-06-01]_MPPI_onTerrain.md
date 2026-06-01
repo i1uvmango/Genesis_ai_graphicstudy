@@ -63,7 +63,7 @@ $$
 
 ## Golden T,S result
 
-| 경로 명칭 | Blender 경로 | Genesis 주행 video | max speed(km/h) | K (curvature) | 도로경사(°) | mean drift(m) |
+| 경로 명칭 | Blender 경로 | Genesis 주행: 클릭시 재생 | max speed(km/h) | K (curvature) | 도로경사(°) | mean drift(m) |
 | - | - | - | - | - | - | - |
 | p01 | ![](../res_wjdaksry/0601/p01.png) | [![](../res_wjdaksry/0601/p01_g.png)](https://github.com/user-attachments/assets/add007d2-4ca6-4aec-81bd-a95e597fe928) <video src="../res_wjdaksry/0601/replay_p01.mp4" controls width="400"></video> | 31.6 km/h | 0.138 (R=7.2 m)  | 4.6° (8%)   | 0.180 m |
 | p02 | ![](../res_wjdaksry/0601/p02.png) | [![](../res_wjdaksry/0601/p02_g.png)](https://github.com/user-attachments/assets/add007d2-4ca6-4aec-81bd-a95e597fe928) <video src="../res_wjdaksry/0601/replay_p02.mp4" controls width="400"></video> | 24.2 km/h | 0.103 (R=9.7 m)  | 3.2° (6%)   | 0.356 m |

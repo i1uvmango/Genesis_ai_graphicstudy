@@ -120,7 +120,7 @@ $$\mathbf{y} = \begin{bmatrix} T \\ S \end{bmatrix} = \begin{bmatrix} T_{golden}
 * 좌우반전 증강 (2배)
 * 노이즈 주입 (heading/cte/pitch/roll)
 * StandardScaler 정규화
-* trajectory 단위 train/val 분할 (80/20, temporal leakage 방지)
+* trajectory 단위 train/val 분할 (80/20, 미래 정보가 선행학습 되는 temporal leakage 방지)
 * 학습 방법: Adam lr=5e-4 wd=1e-3, batch=64 (wd: weight decay 가중치가 너무 커지는 것 방지)
 * 조기종료: 1000 epoch, early stop(patience=80), best val 저장
 

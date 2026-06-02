@@ -11,7 +11,7 @@ how MPPI works :  [about MPPI doc](./[26-02-22]_MPPI.md)
 
 ### Golden Data optimization
 
-MPPI 를 통해 지도학습의 정답 제어값 label 을 생성
+MPPI 를 통해 ST Mapper 학습의 정답 제어값 label 을 생성
 
 > Reference 공간에서의 움직임을 Genesis 에서 동일한 거동을 만드는 제어값 $Throttle,Steer$를 찾은 후, 이를 지도학습의 정답 라벨로 지정
 
